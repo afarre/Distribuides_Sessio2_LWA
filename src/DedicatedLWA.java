@@ -1,14 +1,9 @@
-import sun.net.ConnectionResetException;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 
 public class DedicatedLWA implements Runnable {
     private final static String TMSTP_LWA1 = "TIME_STAMP_LWA1";
@@ -18,19 +13,15 @@ public class DedicatedLWA implements Runnable {
     private Socket socket;
     private DataInputStream diStream;
     private DataOutputStream doStream;
-    private List<LamportRequest> lamportQueue;
 
     private Date date;
-    private final AnalogueCommsLWA analogueCommsLWA;
-    private String TMST;
+    private final AnalogueCommsLWA parent;
     private int id;
 
-    public DedicatedLWA(Socket socket, AnalogueCommsLWA analogueCommsLWA, String time_stamp_lwa, int id) {
+    public DedicatedLWA(Socket socket, AnalogueCommsLWA analogueCommsLWA, int id) {
         this.socket = socket;
-        this.analogueCommsLWA = analogueCommsLWA;
-        lamportQueue = new LinkedList<>();
+        this.parent = analogueCommsLWA;
         date = new Date();
-        TMST = time_stamp_lwa;
         this.id = id;
     }
 
@@ -45,6 +36,7 @@ public class DedicatedLWA implements Runnable {
 
         while (true){
             try {
+                System.out.println("Done my answers and waiting to read something (diStream)");
                 String request = diStream.readUTF();
                 actOnRequest(request);
             } catch (SocketException se){
@@ -60,7 +52,6 @@ public class DedicatedLWA implements Runnable {
     private void actOnRequest(String request) throws IOException {
         long timeStamp;
         int id;
-        LamportRequest merda;
         switch (request){
             case TMSTP_LWA1:
                 System.out.println("[RECEIVING] TMSTP: " + TMSTP_LWA1);
@@ -68,9 +59,7 @@ public class DedicatedLWA implements Runnable {
                 System.out.println("[RECEIVING] time: " + timeStamp);
                 id = diStream.readInt();
                 System.out.println("[RECEIVING] id: " + id);
-                merda = new LamportRequest(timeStamp, TMSTP_LWA1, id);
-                lamportQueue.add(merda);
-                System.out.println("Generated LamportRequest Receiving end: " + merda.toString());
+                parent.addToQueue(timeStamp, TMSTP_LWA1, id);
                 timeStamp = date.getTime();
                 System.out.println("[RECEIVING - ANSWERING " + TMSTP_LWA1 + "] time: " + timeStamp);
                 doStream.writeLong(timeStamp);
@@ -84,9 +73,7 @@ public class DedicatedLWA implements Runnable {
                 System.out.println("[RECEIVING] time: " + timeStamp);
                 id = diStream.readInt();
                 System.out.println("[RECEIVING] id: " + id);
-                merda = new LamportRequest(timeStamp, TMSTP_LWA2, id);
-                lamportQueue.add(merda);
-                System.out.println("Generated LamportRequest Receiving end: " + merda.toString());
+                parent.addToQueue(timeStamp, TMSTP_LWA2, id);
                 timeStamp = date.getTime();
                 System.out.println("[RECEIVING - ANSWERING " + TMSTP_LWA2 + "] time: " + timeStamp);
                 doStream.writeLong(timeStamp);
@@ -100,9 +87,7 @@ public class DedicatedLWA implements Runnable {
                 System.out.println("[RECEIVING] time: " + timeStamp);
                 id = diStream.readInt();
                 System.out.println("[RECEIVING] id: " + id);
-                merda = new LamportRequest(timeStamp, TMSTP_LWA3, id);
-                lamportQueue.add(merda);
-                System.out.println("Generated LamportRequest Receiving end: " + merda.toString());
+                parent.addToQueue(timeStamp, TMSTP_LWA3, id);
                 timeStamp = date.getTime();
                 System.out.println("[RECEIVING - ANSWERING " + TMSTP_LWA3 + "] time: " + timeStamp);
                 doStream.writeLong(timeStamp);
@@ -110,20 +95,11 @@ public class DedicatedLWA implements Runnable {
                 doStream.writeInt(this.id);
                 System.out.println("Answer to LWA3 done.");
                 break;
+            case "RELEASE":
+                String releaseProcess = diStream.readUTF();
+                System.out.println("Releasing process " + releaseProcess +  "...");
+               // this.notify();
+                break;
         }
     }
-
-    public void addToQueue(long time, String tmstp, int id) {
-        lamportQueue.add(new LamportRequest(time, tmstp, id));
-    }
-
-    public LamportRequest queueContains(String tmstp) {
-        for (int i = 0; i < lamportQueue.size(); i++){
-            if (lamportQueue.get(i).getProcess().equals(tmstp)){
-                return lamportQueue.get(i);
-            }
-        }
-        return null;
-    }
-
 }

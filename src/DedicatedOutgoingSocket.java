@@ -5,25 +5,21 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 public class DedicatedOutgoingSocket extends Thread {
-    private int FIRST_OUTGOING_PORT;
+    private int OUTGOING_PORT;
     private int SECOND_OUTGOING_PORT;
 
-    private Socket firstSocket;
-    private DataInputStream firstDataInputStream;
-    private DataOutputStream firstDataOutputStream;
+    private Socket socket;
+    private DataInputStream diStream;
+    private DataOutputStream doStream;
 
-    private Socket secondSocket;
-    private DataInputStream secondDataInputStream;
-    private DataOutputStream secondDataOutputStream;
 
     private AnalogueCommsLWA analogueCommsLWA;
     private String TMSTP;
     private int id;
     private S_LWA parent;
 
-    public DedicatedOutgoingSocket(S_LWA s_lwa, int first_outgoing_port, int second_outgoing_port, String tmstp, AnalogueCommsLWA analogueCommsLWA, int id) {
-        FIRST_OUTGOING_PORT = first_outgoing_port;
-        SECOND_OUTGOING_PORT = second_outgoing_port;
+    public DedicatedOutgoingSocket(S_LWA s_lwa, int outgoing_port, String tmstp, AnalogueCommsLWA analogueCommsLWA, int id) {
+        OUTGOING_PORT = outgoing_port;
         TMSTP = tmstp;
         this.analogueCommsLWA = analogueCommsLWA;
         this.id = id;
@@ -36,76 +32,88 @@ public class DedicatedOutgoingSocket extends Thread {
             InetAddress iAddress = InetAddress.getLocalHost();
             String IP = iAddress.getHostAddress();
 
-            firstSocket = new Socket(String.valueOf(IP), FIRST_OUTGOING_PORT);
-            firstDataOutputStream = new DataOutputStream(firstSocket.getOutputStream());
-            firstDataInputStream = new DataInputStream(firstSocket.getInputStream());
+            socket = new Socket(String.valueOf(IP), OUTGOING_PORT);
+            doStream = new DataOutputStream(socket.getOutputStream());
+            diStream = new DataInputStream(socket.getInputStream());
 
-            secondSocket = new Socket(String.valueOf(IP), SECOND_OUTGOING_PORT);
-            secondDataOutputStream = new DataOutputStream(secondSocket.getOutputStream());
-            secondDataInputStream = new DataInputStream(secondSocket.getInputStream());
 
             while (true){
-                firstDataOutputStream.writeUTF(TMSTP);
-                secondDataOutputStream.writeUTF(TMSTP);
-                System.out.println("\t[SENDING] timestamp: " + TMSTP);
+                long requestTime = sendRequest();
 
-                long time = new java.util.Date().getTime();
-                firstDataOutputStream.writeLong(time);
-                secondDataOutputStream.writeLong(time);
-                System.out.println("\t[SENDING] time: " + time);
+                //wait for request response
+                boolean requestAttended = false;
+                boolean available = false;
+                while (!requestAttended){
+                    long responseTime = diStream.readLong();
 
-                firstDataOutputStream.writeInt(id);
-                secondDataOutputStream.writeInt(id);
-                System.out.println("\t[SENDING] id: " + id);
-
-                analogueCommsLWA.addToQueue(time, TMSTP, id);
-                LamportRequest merda = new LamportRequest(time, TMSTP, id);
-                System.out.println("\tGenerated LamportRequest Sending end: " + merda.toString());
-
-                long firstResponseTimestamp = firstDataInputStream.readLong();
-                long secondResponseTimestamp = secondDataInputStream.readLong();
-
-                System.out.println("\t[SENDER - RECEIVED] First timestamp: " + firstResponseTimestamp);
-                System.out.println("\t[SENDER - RECEIVED] Second timestamp: " + secondResponseTimestamp);
-
-                int firstId = firstDataInputStream.readInt();
-                int secondId = secondDataInputStream.readInt();
-
-                System.out.println("\t[SENDER - RECEIVED] First ID: " + firstId);
-                System.out.println("\t[SENDER - RECEIVED] Second ID: " + secondId);
-
-                LamportRequest queueRequest = analogueCommsLWA.queueContains(TMSTP);
-
-                //System.out.println("\tQueue process: " + queueRequest.getProcess());
-                //System.out.println("\tQueue ID: " + queueRequest.getId());
-//                System.exit(0);
-
-                if (queueRequest != null){
-                    System.out.println("\tFirst IN");
-                    System.out.println("\tLamport self time: " + time);
-                    System.out.println("\tLamport first time: " + firstResponseTimestamp);
-                    System.out.println("\tLamport second time: " + secondResponseTimestamp);
-                    if (firstResponseTimestamp > time && secondResponseTimestamp > time){
-                        System.out.println("Second IN");
-                        for (int i = 0; i < 10; i++){
-                            System.out.println("\tSoc el procés lightweight " + TMSTP);
-                            Thread.sleep(1000);
-                        }
-                    }else if ((firstResponseTimestamp == time || secondResponseTimestamp == time) && (queueRequest.getId() < firstId || queueRequest.getId() < secondId)){
-                        System.out.println("Third IN");
-                        for (int i = 0; i < 10; i++){
-                            System.out.println("\tSoc el procés lightweight " + TMSTP);
-                            Thread.sleep(1000);
-                        }
+                    System.out.println("\t[SENDER - RECEIVED] Timestamp: " + responseTime);
+                    int firstId = diStream.readInt();
+                    System.out.println("\t[SENDER - RECEIVED] ID: " + firstId);
+                    LamportRequest queueRequest = analogueCommsLWA.queueContains(TMSTP);
+                    if (!analogueCommsLWA.isGotAnswer()){
+                        //first answer. change flag
+                        analogueCommsLWA.setGotAnswer(true);
                     }else {
-                        parent.waitForFreeCS();
+                        //second answer. Must check queue
+                        available = analogueCommsLWA.checkCSAvailability(TMSTP, requestTime);
+                        //reset answer flag
+                        analogueCommsLWA.setGotAnswer(false);
                     }
+
+                    if (available){
+                        parent.useScreen();
+                        analogueCommsLWA.releaseProcess(TMSTP);
+                        System.out.println("### sending release msg ###");
+                        //TODO: Estic enviant un sol release desde un dels dos DedicatedOutgoing, quan s'hauria d'enviar en els dos a traves de anaoguecomms
+                        doStream.writeUTF("RELEASE");
+                        doStream.writeUTF(TMSTP);
+                        requestAttended = true;
+                    }
+
+/*
+                    if (queueRequest != null && analogueCommsLWA.lesserTimestamp(requestTime)){
+                        System.out.println("\tFirst IN");
+                        System.out.println("\tLamport self time: " + requestTime);
+                        System.out.println("\tLamport first time: " + responseTime);
+                        if (responseTime > requestTime){
+                            System.out.println("Second IN");
+                            parent.useScreen();
+                            System.out.println("### sending release msg ###");
+                            requestAttended = true;
+                            // doStream.writeUTF("RELEASE");
+                        }else if (responseTime == requestTime && queueRequest.getId() < firstId){
+                            System.out.println("Third IN");
+                            parent.useScreen();
+                            System.out.println("### sending release msg ###");
+                            requestAttended = true;
+                            // doStream.writeUTF("RELEASE");
+                        }else {
+                            parent.waitForFreeCS();
+                        }
+                    }
+                    */
                 }
-                //System.exit(0);
 
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+
+    private long sendRequest() throws IOException {
+        doStream.writeUTF(TMSTP);
+        System.out.println("\t[SENDING] Timestamp: " + TMSTP);
+
+        long time = new java.util.Date().getTime();
+        doStream.writeLong(time);
+        System.out.println("\t[SENDING] Time: " + time);
+
+        doStream.writeInt(id);
+        System.out.println("\t[SENDING] ID: " + id);
+
+        analogueCommsLWA.addToQueue(time, TMSTP, id);
+        //System.out.println("\t rip sending end?");
+        return time;
     }
 }
