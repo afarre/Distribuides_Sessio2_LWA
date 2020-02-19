@@ -45,7 +45,16 @@ public class S_LWA extends Thread {
                 firstDedicatedOutgoing.start();
                 secondDedicatedOutgoing = new DedicatedOutgoingSocket(this, SECOND_OUTGOING_PORT, TMSTP, analogueCommsLWA, id);
                 secondDedicatedOutgoing.start();
+                analogueCommsLWA.registerDedicateds(firstDedicatedOutgoing, secondDedicatedOutgoing);
+            }
 
+            while (true){
+                analogueCommsLWA.makeRequest();
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         } catch (ConnectException ignored) {
         } catch (IOException e) {
@@ -53,10 +62,14 @@ public class S_LWA extends Thread {
         }
     }
 
-    public synchronized void useScreen() throws InterruptedException {
-        for (int i = 0; i < 10; i++){
+    public synchronized void useScreen() {
+        for (int i = 0; i <= 10; i++){
             System.out.println("\tSoc el procés lightweight " + TMSTP);
-            Thread.sleep(1000);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

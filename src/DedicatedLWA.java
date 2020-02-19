@@ -36,7 +36,6 @@ public class DedicatedLWA implements Runnable {
 
         while (true){
             try {
-                System.out.println("Done my answers and waiting to read something (diStream)");
                 String request = diStream.readUTF();
                 actOnRequest(request);
             } catch (SocketException se){
@@ -98,7 +97,8 @@ public class DedicatedLWA implements Runnable {
             case "RELEASE":
                 String releaseProcess = diStream.readUTF();
                 System.out.println("Releasing process " + releaseProcess +  "...");
-               // this.notify();
+                parent.releaseRequest(releaseProcess);
+                parent.checkCSAvailability();
                 break;
         }
     }

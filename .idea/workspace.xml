@@ -2,11 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="52cf3c25-ed40-4cec-998f-403f3133977c" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/AnalogueCommsLWA.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/AnalogueCommsLWA.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/DedicatedLWA.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/DedicatedLWA.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/DedicatedOutgoingSocket.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/DedicatedOutgoingSocket.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/S_LWA.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/S_LWA.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/AnalogueCommsLWA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/AnalogueCommsLWA.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/DedicatedLWA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/DedicatedLWA.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/DedicatedOutgoingSocket.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/DedicatedOutgoingSocket.java" afterDir="false" />
@@ -135,7 +135,19 @@
       <option name="presentableId" value="Default" />
       <updated>1576693919897</updated>
     </task>
+    <task id="LOCAL-00001" summary="Una instancia de DedicatedOutgoingSocket per cada LWA.&#10;La cua es troba en la classe AnalogueCommsLWA.">
+      <created>1582054295390</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1582054295391</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Una instancia de DedicatedOutgoingSocket per cada LWA.&#10;La cua es troba en la classe AnalogueCommsLWA." />
+    <option name="LAST_COMMIT_MESSAGE" value="Una instancia de DedicatedOutgoingSocket per cada LWA.&#10;La cua es troba en la classe AnalogueCommsLWA." />
   </component>
   <component name="WindowStateProjectService">
     <state x="485" y="70" key="#LWA2" timestamp="1576695233684">
@@ -146,10 +158,10 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="223" y="67" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.824@0.0.1536.824" timestamp="1581964570293" />
-    <state x="574" y="123" key="#com.intellij.ide.util.MemberChooser" timestamp="1582053395682">
+    <state x="574" y="123" key="#com.intellij.ide.util.MemberChooser" timestamp="1582123321401">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="574" y="123" key="#com.intellij.ide.util.MemberChooser/0.0.1536.824@0.0.1536.824" timestamp="1582053395682" />
+    <state x="574" y="123" key="#com.intellij.ide.util.MemberChooser/0.0.1536.824@0.0.1536.824" timestamp="1582123321401" />
     <state x="389" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1577390204928">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
@@ -158,30 +170,38 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="499" y="160" key="#com.intellij.refactoring.typeMigration.ui.FailedConversionsDialog/0.0.1536.824@0.0.1536.824" timestamp="1582049937100" />
+    <state x="338" y="9" key="CommitChangelistDialog2" timestamp="1582054293021">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="338" y="9" key="CommitChangelistDialog2/0.0.1536.824@0.0.1536.824" timestamp="1582054293021" />
     <state x="549" y="168" key="FileChooserDialogImpl" timestamp="1581964541336">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="549" y="168" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1581964541336" />
-    <state width="1493" height="475" key="GridCell.Tab.0.bottom" timestamp="1582054063241">
+    <state width="1493" height="239" key="GridCell.Tab.0.bottom" timestamp="1582132577511">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="475" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1582054063241" />
-    <state width="1493" height="475" key="GridCell.Tab.0.center" timestamp="1582054063241">
+    <state width="1493" height="239" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1582132577511" />
+    <state width="1493" height="239" key="GridCell.Tab.0.center" timestamp="1582132577511">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="475" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1582054063241" />
-    <state width="1493" height="475" key="GridCell.Tab.0.left" timestamp="1582054063241">
+    <state width="1493" height="239" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1582132577511" />
+    <state width="1493" height="239" key="GridCell.Tab.0.left" timestamp="1582132577510">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="475" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1582054063241" />
-    <state width="1493" height="475" key="GridCell.Tab.0.right" timestamp="1582054063241">
+    <state width="1493" height="239" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1582132577510" />
+    <state width="1493" height="239" key="GridCell.Tab.0.right" timestamp="1582132577511">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="475" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1582054063241" />
-    <state x="511" y="40" key="refactoring.ChangeSignatureDialog" timestamp="1582046177016">
+    <state width="1493" height="239" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1582132577511" />
+    <state x="361" y="146" key="Vcs.Push.Dialog.v2" timestamp="1582054299068">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="511" y="40" key="refactoring.ChangeSignatureDialog/0.0.1536.824@0.0.1536.824" timestamp="1582046177016" />
+    <state x="361" y="146" key="Vcs.Push.Dialog.v2/0.0.1536.824@0.0.1536.824" timestamp="1582054299068" />
+    <state x="511" y="40" key="refactoring.ChangeSignatureDialog" timestamp="1582125757407">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="511" y="40" key="refactoring.ChangeSignatureDialog/0.0.1536.824@0.0.1536.824" timestamp="1582125757407" />
     <state x="425" y="187" key="run.anything.popup" timestamp="1582046802011">
       <screen x="0" y="0" width="1536" height="824" />
     </state>

@@ -8,10 +8,16 @@ public class AnalogueCommsLWA extends Thread {
     private int MY_PORT;
     private final S_LWA s_lwa;
     private String time_stamp_lwa;
-    private int id;
     private final ArrayList<Thread> dedicatedThreadList;
     private LinkedList<LamportRequest> lamportQueue;
     private boolean gotAnswer;
+
+    private DedicatedOutgoingSocket firstDedicatedOutgoing;
+    private DedicatedOutgoingSocket secondDedicatedOutgoing;
+
+    private String tmstp;
+    private long requestTime;
+    private int id;
 
     public AnalogueCommsLWA(S_LWA s_lwa, int myPort, String time_stamp_lwa, int id) {
         this.MY_PORT = myPort;
@@ -45,18 +51,33 @@ public class AnalogueCommsLWA extends Thread {
         thread.start();
     }
 
-    public boolean checkCSAvailability(String TMSTP, long requestTime){
+    public synchronized void checkCSAvailability(){
+        boolean available = true;
         for (LamportRequest lr : lamportQueue){
-            if (!lr.getProcess().equals(TMSTP)){
+            System.out.println("[LAMPORT (query)]" + lr.toString());
+        }
+
+        for (LamportRequest lr : lamportQueue){
+            if (!lr.getProcess().equals(tmstp)){
                 if (lr.getTimeStamp() < requestTime){
-                    return false;
+                    available = false;
+                }else if (lr.getTimeStamp() == requestTime && lr.getId() > id){
+                    available = false;
                 }
             }
         }
-        return true;
+
+        if (available){
+            s_lwa.useScreen();
+            try {
+                releaseProcess(tmstp);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public void addToQueue(long time, String process, int id) {
+    public synchronized void addToQueue(long time, String process, int id) {
         LamportRequest request = new LamportRequest(time, process, id);
         boolean found = false;
         for (LamportRequest lr : lamportQueue){
@@ -67,18 +88,11 @@ public class AnalogueCommsLWA extends Thread {
         }
 
         if (!found){
-            System.out.println("Adding request to queue: " + request.toString());
+            for (LamportRequest lr : lamportQueue){
+                System.out.println("[LAMPORT (add)]" + lr.toString());
+            }
             lamportQueue.add(request);
         }
-    }
-
-    public LamportRequest queueContains(String tmstp) {
-        for (LamportRequest lamportRequest : lamportQueue) {
-            if (lamportRequest.getProcess().equals(tmstp)) {
-                return lamportRequest;
-            }
-        }
-        return null;
     }
 
     public void waitForFreeCS() {
@@ -94,14 +108,24 @@ public class AnalogueCommsLWA extends Thread {
         }
     }
 
-    public boolean lesserTimestamp(long time) {
-        for (LamportRequest lamportRequest : lamportQueue) {
-            System.out.println("--- comparing original request time " + time + " with queue time " + lamportRequest.toString() + " ---");
-            if (lamportRequest.getTimeStamp() < time) {
-                return false;
-            }
-        }
-        return true;
+
+    public synchronized void releaseProcess(String tmstp) throws IOException {
+        System.out.println("### sending release msg to both dedicatedOutgoings ###");
+        firstDedicatedOutgoing.releaseCS(tmstp);
+        secondDedicatedOutgoing.releaseCS(tmstp);
+        releaseRequest(tmstp);
+        s_lwa.notify();
+    }
+
+    public void registerDedicateds(DedicatedOutgoingSocket firstDedicatedOutgoing, DedicatedOutgoingSocket secondDedicatedOutgoing) {
+        this.firstDedicatedOutgoing = firstDedicatedOutgoing;
+        this.secondDedicatedOutgoing = secondDedicatedOutgoing;
+    }
+
+    public void makeRequest() throws IOException {
+        long time = new java.util.Date().getTime();
+        firstDedicatedOutgoing.sendRequest(time);
+        secondDedicatedOutgoing.sendRequest(time);
     }
 
     public synchronized boolean isGotAnswer() {
@@ -112,7 +136,15 @@ public class AnalogueCommsLWA extends Thread {
         this.gotAnswer = gotAnswer;
     }
 
-    public void releaseProcess(String tmstp) {
+    public synchronized void releaseRequest(String releaseProcess) {
+        for (LamportRequest lr : lamportQueue){
+            System.out.println("[LAMPORT (remove)]" + lr.toString());
+        }
+        lamportQueue.removeIf(lr -> lr.getProcess().equals(releaseProcess));
+    }
 
+    public void setRequestData(String tmstp, long requestTime) {
+        this.tmstp = tmstp;
+        this.requestTime = requestTime;
     }
 }
