@@ -1,16 +1,16 @@
 public class LamportRequest {
-    private long timeStamp;
+    private int clock;
     private String process;
     private int id;
 
-    public LamportRequest(long timeStamp, String process, int id){
-        this.timeStamp = timeStamp;
+    public LamportRequest(int clock, String process, int id){
+        this.clock = clock;
         this.process = process;
         this.id = id;
     }
 
-    public long getTimeStamp() {
-        return timeStamp;
+    public int getClock() {
+        return clock;
     }
 
     public String getProcess() {
@@ -24,7 +24,7 @@ public class LamportRequest {
     @Override
     public String toString() {
         return "LamportRequest{" +
-                "timeStamp=" + timeStamp +
+                "clock=" + clock +
                 ", process='" + process + '\'' +
                 ", id=" + id +
                 '}';

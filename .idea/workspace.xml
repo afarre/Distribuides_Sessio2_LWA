@@ -2,14 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="52cf3c25-ed40-4cec-998f-403f3133977c" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/CheckCriticalZone.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/AnalogueCommsLWA.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/AnalogueCommsLWA.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/DedicatedLWA.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/DedicatedLWA.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/DedicatedLWA.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/DedicatedOutgoingSocket.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/DedicatedOutgoingSocket.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/LamportRequest.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/LamportRequest.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/S_LWA.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/S_LWA.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/AnalogueCommsLWA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/AnalogueCommsLWA.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/DedicatedLWA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/DedicatedLWA.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DedicatedLWA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/DedicatedIncomingSocket.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/DedicatedOutgoingSocket.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/DedicatedOutgoingSocket.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/LamportRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/LamportRequest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/S_LWA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/S_LWA.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -37,7 +40,10 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../HeavyWeightA" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="project.structure.last.edited" value="Artifacts" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.2" />
     <property name="settings.editor.selected.configurable" value="settings.github" />
   </component>
   <component name="RunManager" selected="Application.LWA1">
@@ -49,7 +55,7 @@
       <method />
     </configuration>
     <configuration name="LWA1" type="Application" factoryName="Application">
-      <output_file path="$PROJECT_DIR$/../../Exercici3/LWA1 output" is_save="true" />
+      <output_file path="$PROJECT_DIR$/../LWA1 output" is_save="true" />
       <option name="MAIN_CLASS_NAME" value="main" />
       <module name="LightWeightsA" />
       <option name="PROGRAM_PARAMETERS" value="LWA1 44444 55555 55556 55557 TIME_STAMP_LWA1 1" />
@@ -58,7 +64,7 @@
       </method>
     </configuration>
     <configuration name="LWA2" type="Application" factoryName="Application">
-      <output_file path="$PROJECT_DIR$/../../Exercici3/LWA2 output" is_save="true" />
+      <output_file path="$PROJECT_DIR$/../LWA2 output" is_save="true" />
       <option name="MAIN_CLASS_NAME" value="main" />
       <module name="LightWeightsA" />
       <option name="PROGRAM_PARAMETERS" value="LWA2 44444 55556 55555 55557 TIME_STAMP_LWA2 2" />
@@ -67,7 +73,7 @@
       </method>
     </configuration>
     <configuration name="LWA3" type="Application" factoryName="Application">
-      <output_file path="$PROJECT_DIR$/../../Exercici3/LWA3 output" is_save="true" />
+      <output_file path="$PROJECT_DIR$/../LWA3 output" is_save="true" />
       <option name="MAIN_CLASS_NAME" value="main" />
       <module name="LightWeightsA" />
       <option name="PROGRAM_PARAMETERS" value="LWA3 44444 55557 55555 55556 TIME_STAMP_LWA3 3" />
@@ -142,73 +148,85 @@
       <option name="project" value="LOCAL" />
       <updated>1582054295391</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Esborrar requests de Lamport a la cua tant despues de atendre la meva peticio com despues de atendre una peticio d'un altre LWA.">
+      <created>1582133234797</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1582133234797</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Una instancia de DedicatedOutgoingSocket per cada LWA.&#10;La cua es troba en la classe AnalogueCommsLWA." />
-    <option name="LAST_COMMIT_MESSAGE" value="Una instancia de DedicatedOutgoingSocket per cada LWA.&#10;La cua es troba en la classe AnalogueCommsLWA." />
+    <MESSAGE value="Esborrar requests de Lamport a la cua tant despues de atendre la meva peticio com despues de atendre una peticio d'un altre LWA." />
+    <option name="LAST_COMMIT_MESSAGE" value="Esborrar requests de Lamport a la cua tant despues de atendre la meva peticio com despues de atendre una peticio d'un altre LWA." />
   </component>
   <component name="WindowStateProjectService">
-    <state x="485" y="70" key="#LWA2" timestamp="1576695233684">
+    <state x="51" y="137" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1582813804687">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="485" y="70" key="#LWA2/0.0.1536.824@0.0.1536.824" timestamp="1576695233684" />
-    <state x="223" y="67" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1581964570293">
+    <state x="51" y="137" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.824@0.0.1536.824" timestamp="1582813804687" />
+    <state x="574" y="123" key="#com.intellij.ide.util.MemberChooser" timestamp="1585568074861">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="223" y="67" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.824@0.0.1536.824" timestamp="1581964570293" />
-    <state x="574" y="123" key="#com.intellij.ide.util.MemberChooser" timestamp="1582123321401">
+    <state x="574" y="123" key="#com.intellij.ide.util.MemberChooser/0.0.1536.824@0.0.1536.824" timestamp="1585568074861" />
+    <state x="389" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1585560586258">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="574" y="123" key="#com.intellij.ide.util.MemberChooser/0.0.1536.824@0.0.1536.824" timestamp="1582123321401" />
-    <state x="389" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1577390204928">
-      <screen x="0" y="0" width="1536" height="824" />
-    </state>
-    <state x="389" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1536.824@0.0.1536.824" timestamp="1577390204928" />
+    <state x="389" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1536.824@0.0.1536.824" timestamp="1585560586258" />
     <state x="499" y="160" key="#com.intellij.refactoring.typeMigration.ui.FailedConversionsDialog" timestamp="1582049937100">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="499" y="160" key="#com.intellij.refactoring.typeMigration.ui.FailedConversionsDialog/0.0.1536.824@0.0.1536.824" timestamp="1582049937100" />
-    <state x="338" y="9" key="CommitChangelistDialog2" timestamp="1582054293021">
+    <state x="338" y="0" key="CommitChangelistDialog2" timestamp="1582133233165">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="338" y="9" key="CommitChangelistDialog2/0.0.1536.824@0.0.1536.824" timestamp="1582054293021" />
+    <state x="338" y="0" key="CommitChangelistDialog2/0.0.1536.824@0.0.1536.824" timestamp="1582133233165" />
     <state x="549" y="168" key="FileChooserDialogImpl" timestamp="1581964541336">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="549" y="168" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1581964541336" />
-    <state width="1493" height="239" key="GridCell.Tab.0.bottom" timestamp="1582132577511">
+    <state width="1493" height="258" key="GridCell.Tab.0.bottom" timestamp="1585641893606">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="239" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1582132577511" />
-    <state width="1493" height="239" key="GridCell.Tab.0.center" timestamp="1582132577511">
+    <state width="1493" height="258" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1585641893606" />
+    <state width="1493" height="258" key="GridCell.Tab.0.center" timestamp="1585641893605">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="239" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1582132577511" />
-    <state width="1493" height="239" key="GridCell.Tab.0.left" timestamp="1582132577510">
+    <state width="1493" height="258" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1585641893605" />
+    <state width="1493" height="258" key="GridCell.Tab.0.left" timestamp="1585641893605">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="239" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1582132577510" />
-    <state width="1493" height="239" key="GridCell.Tab.0.right" timestamp="1582132577511">
+    <state width="1493" height="258" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1585641893605" />
+    <state width="1493" height="258" key="GridCell.Tab.0.right" timestamp="1585641893605">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="239" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1582132577511" />
-    <state x="361" y="146" key="Vcs.Push.Dialog.v2" timestamp="1582054299068">
+    <state width="1493" height="258" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1585641893605" />
+    <state x="249" y="0" key="SettingsEditor" timestamp="1582656124266">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="361" y="146" key="Vcs.Push.Dialog.v2/0.0.1536.824@0.0.1536.824" timestamp="1582054299068" />
-    <state x="511" y="40" key="refactoring.ChangeSignatureDialog" timestamp="1582125757407">
+    <state x="249" y="0" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1582656124266" />
+    <state x="361" y="146" key="Vcs.Push.Dialog.v2" timestamp="1582133237536">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="511" y="40" key="refactoring.ChangeSignatureDialog/0.0.1536.824@0.0.1536.824" timestamp="1582125757407" />
-    <state x="425" y="187" key="run.anything.popup" timestamp="1582046802011">
+    <state x="361" y="146" key="Vcs.Push.Dialog.v2/0.0.1536.824@0.0.1536.824" timestamp="1582133237536" />
+    <state x="463" y="144" width="609" height="536" key="find.popup" timestamp="1585568261597">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="425" y="187" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1582046802011" />
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1581963681816">
+    <state x="463" y="144" width="609" height="536" key="find.popup/0.0.1536.824@0.0.1536.824" timestamp="1585568261597" />
+    <state x="511" y="40" key="refactoring.ChangeSignatureDialog" timestamp="1583255615441">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1581963681816" />
+    <state x="511" y="40" key="refactoring.ChangeSignatureDialog/0.0.1536.824@0.0.1536.824" timestamp="1583255615441" />
+    <state x="425" y="187" key="run.anything.popup" timestamp="1585398807512">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="425" y="187" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1585398807512" />
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1585640331119">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1585640331119" />
   </component>
 </project>

@@ -10,8 +10,6 @@ public class S_LWA extends Thread {
     private int FIRST_OUTGOING_PORT;
     private int SECOND_OUTGOING_PORT;
     private String TMSTP;
-    private DedicatedOutgoingSocket firstDedicatedOutgoing;
-    private DedicatedOutgoingSocket secondDedicatedOutgoing;
 
     private Socket socketHWA;
     private DataInputStream diStreamHWA;
@@ -20,6 +18,7 @@ public class S_LWA extends Thread {
     private AnalogueCommsLWA analogueCommsLWA;
     private int id;
     private String className;
+    private String lastExecuted;
 
     public S_LWA(String className, int outgoingHwaPort, int myPort, int firstOutgoingPort, int secondOutgoingPort, String time_stamp_lwa, int id){
         this.OUTGOING_HWA_PORT = outgoingHwaPort;
@@ -30,6 +29,7 @@ public class S_LWA extends Thread {
         this.TMSTP = time_stamp_lwa;
         analogueCommsLWA = new AnalogueCommsLWA(this, myPort, time_stamp_lwa, id);
         analogueCommsLWA.start();
+        lastExecuted = "";
     }
 
     @Override
@@ -41,20 +41,13 @@ public class S_LWA extends Thread {
             boolean connect = diStreamHWA.readBoolean();
 
             if (connect){
-                firstDedicatedOutgoing = new DedicatedOutgoingSocket(this, FIRST_OUTGOING_PORT, TMSTP, analogueCommsLWA, id);
+                DedicatedOutgoingSocket firstDedicatedOutgoing = new DedicatedOutgoingSocket(this, FIRST_OUTGOING_PORT, TMSTP, analogueCommsLWA, id);
                 firstDedicatedOutgoing.start();
-                secondDedicatedOutgoing = new DedicatedOutgoingSocket(this, SECOND_OUTGOING_PORT, TMSTP, analogueCommsLWA, id);
+                DedicatedOutgoingSocket secondDedicatedOutgoing = new DedicatedOutgoingSocket(this, SECOND_OUTGOING_PORT, TMSTP, analogueCommsLWA, id);
                 secondDedicatedOutgoing.start();
                 analogueCommsLWA.registerDedicateds(firstDedicatedOutgoing, secondDedicatedOutgoing);
-            }
 
-            while (true){
-                analogueCommsLWA.makeRequest();
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                //analogueCommsLWA.makeRequest();
             }
         } catch (ConnectException ignored) {
         } catch (IOException e) {
@@ -63,6 +56,7 @@ public class S_LWA extends Thread {
     }
 
     public synchronized void useScreen() {
+        lastExecuted = TMSTP;
         for (int i = 0; i <= 10; i++){
             System.out.println("\tSoc el procés lightweight " + TMSTP);
             try {
@@ -84,12 +78,7 @@ public class S_LWA extends Thread {
         diStreamHWA = new DataInputStream(socketHWA.getInputStream());
     }
 
-
-    public void notifyDone() throws IOException {
-        doStreamHWA.writeUTF("LWA1_DONE");
-    }
-
-    public void waitForFreeCS() {
-        analogueCommsLWA.waitForFreeCS();
+    public String getLastExecuted() {
+        return lastExecuted;
     }
 }

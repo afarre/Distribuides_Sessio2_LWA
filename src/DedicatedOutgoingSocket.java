@@ -12,18 +12,16 @@ public class DedicatedOutgoingSocket extends Thread {
     private DataOutputStream doStream;
 
     private AnalogueCommsLWA analogueCommsLWA;
-    private String TMSTP;
-    private long requestTime;
+    private String process;
+    private int clock;
     private int id;
-    private S_LWA parent;
-    private boolean requestAttended;
 
     public DedicatedOutgoingSocket(S_LWA s_lwa, int outgoing_port, String tmstp, AnalogueCommsLWA analogueCommsLWA, int id) {
         OUTGOING_PORT = outgoing_port;
-        TMSTP = tmstp;
+        process = tmstp;
         this.analogueCommsLWA = analogueCommsLWA;
         this.id = id;
-        parent = s_lwa;
+        clock = analogueCommsLWA.getClock();
 
         try {
             InetAddress iAddress = InetAddress.getLocalHost();
@@ -42,7 +40,16 @@ public class DedicatedOutgoingSocket extends Thread {
 
     @Override
     public void run() {
-
+        while (true){
+            try {
+                sendRequest();
+                synchronized (this){
+                    this.wait();
+                }
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void releaseCS(String tmstp) throws IOException {
@@ -51,19 +58,28 @@ public class DedicatedOutgoingSocket extends Thread {
     }
 
 
-    public void sendRequest(long time) throws IOException {
-        this.requestTime = time;
-        doStream.writeUTF(TMSTP);
+    public void sendRequest() throws IOException {
+        doStream.writeUTF("LAMPORT REQUEST");
+        doStream.writeUTF(process);
         //System.out.println("\t[SENDING] Timestamp: " + TMSTP);
 
-        doStream.writeLong(time);
-        System.out.println("\t[SENDING] Time: " + time);
+        clock = analogueCommsLWA.getClock();
+        doStream.writeInt(clock);
+        //System.out.println("\t[SENDING] Time: " + time);
 
         doStream.writeInt(id);
         //System.out.println("\t[SENDING] ID: " + id);
 
-        analogueCommsLWA.addToQueue(time, TMSTP, id);
+        analogueCommsLWA.addToQueue(clock, process, id);
         //System.out.println("\t rip sending end?");
+
+        if (OUTGOING_PORT == 55556){
+            System.out.println("\tSENDING request (timestamp: " + clock + ") to TIME_STAMP_LWA2");
+        }else  if (OUTGOING_PORT == 55557){
+            System.out.println("\tSENDING request (timestamp: " + clock + ") to TIME_STAMP_LWA3");
+        }else  if (OUTGOING_PORT == 55555){
+            System.out.println("\tSENDING request (timestamp: " + clock + ") to TIME_STAMP_LWA1");
+        }
 
         try {
             waitRequestResponse();
@@ -75,23 +91,18 @@ public class DedicatedOutgoingSocket extends Thread {
 
     private void waitRequestResponse() throws IOException, InterruptedException {
         //wait for request response
-        long responseTime = diStream.readLong();
+        int clock = diStream.readInt();
 
         int firstId = diStream.readInt();
-        System.out.println("\t[SENDER - RECEIVED] Timestamp[" + responseTime + "] and ID[" + firstId + "]");
+        //System.out.println("\t[SENDER - RECEIVED] Timestamp[" + responseTime + "] and ID[" + firstId + "]");
         //System.out.println("\t[SENDER - RECEIVED] ID: " + firstId);
 
-        if (!analogueCommsLWA.isGotAnswer()){
-            //first answer. change flag
-            analogueCommsLWA.setGotAnswer(true);
-        }else {
-            //second answer. Must check queue
-            //TODO: must check queue constantment fins que s'han borrat les altres requests i em toque a mi
-            analogueCommsLWA.setRequestData(TMSTP, requestTime);
-            analogueCommsLWA.checkCSAvailability();
-            //reset answer flag
-            analogueCommsLWA.setGotAnswer(false);
-        }
+        analogueCommsLWA.checkBothAnswers(process, clock, OUTGOING_PORT);
     }
 
+    public void myNotify() {
+        synchronized (this){
+            this.notify();
+        }
+    }
 }
