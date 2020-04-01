@@ -2,15 +2,14 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AnalogueCommsLWA extends Thread {
     private int MY_PORT;
     private final S_LWA s_lwa;
     private String time_stamp_lwa;
     private final ArrayList<Thread> dedicatedThreadList;
-    private final LinkedList<LamportRequest> lamportQueue;
+    private final CopyOnWriteArrayList<LamportRequest> lamportQueue;
     private boolean gotAnswer;
 
     private DedicatedOutgoingSocket firstDedicatedOutgoing;
@@ -29,7 +28,7 @@ public class AnalogueCommsLWA extends Thread {
         this.time_stamp_lwa = time_stamp_lwa;
         this.id = id;
         dedicatedThreadList = new ArrayList<>();
-        lamportQueue = new LinkedList<>();
+        lamportQueue = new CopyOnWriteArrayList<>();
         gotAnswer = false;
         this.checkCriticalZone = new CheckCriticalZone(this);
         checkCriticalZone.start();
@@ -115,6 +114,7 @@ public class AnalogueCommsLWA extends Thread {
 */
     public synchronized void addToQueue(int clock, String process, int id) {
         LamportRequest request = new LamportRequest(clock, process, id);
+        System.out.println("Adding request: " + request.toString());
         boolean found = false;
         for (LamportRequest lr : lamportQueue){
             if (lr.getProcess().equals(process)){
@@ -173,13 +173,7 @@ public class AnalogueCommsLWA extends Thread {
 
     public synchronized void releaseRequest(String releaseProcess) {
         synchronized (lamportQueue){
-            //lamportQueue.removeIf(lr -> lr.getProcess().equals(releaseProcess));
-            for (Iterator<LamportRequest> iterator = lamportQueue.iterator(); iterator.hasNext();) {
-                LamportRequest lr = iterator.next();
-                if (lr.getProcess().equals(releaseProcess)) {
-                    iterator.remove();
-                }
-            }
+            lamportQueue.removeIf(lr -> lr.getProcess().equals(releaseProcess));
         }
         System.out.println();
         for (LamportRequest lr : lamportQueue){
@@ -234,7 +228,7 @@ public class AnalogueCommsLWA extends Thread {
         checkCriticalZone.myNotify();
     }
 
-    public LinkedList<LamportRequest> getLamportQueue() {
+    public CopyOnWriteArrayList<LamportRequest> getLamportQueue() {
         return lamportQueue;
     }
 

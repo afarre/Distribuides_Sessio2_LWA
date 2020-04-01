@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.LinkedList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DedicatedIncomingSocket implements Runnable {
     private static String process;
@@ -79,12 +80,10 @@ public class DedicatedIncomingSocket implements Runnable {
     }
 
     private synchronized int getMyRequestedClock(String process) {
-        LinkedList<LamportRequest> lamportRequest = parent.getLamportQueue();
-        synchronized (lamportRequest){
-            for (LamportRequest l : lamportRequest){
-                if (l.getProcess().equals(process)){
-                    return l.getClock();
-                }
+        CopyOnWriteArrayList<LamportRequest> lamportRequest = parent.getLamportQueue();
+        for (LamportRequest l : lamportRequest){
+            if (l.getProcess().equals(process)){
+                return l.getClock();
             }
         }
         return 0;

@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CheckCriticalZone extends Thread {
     private AnalogueCommsLWA analogueCommsLWA;
@@ -44,26 +45,24 @@ public class CheckCriticalZone extends Thread {
         boolean available = true;
         int clock = analogueCommsLWA.getClock();
         int id = analogueCommsLWA.getTheId();
-        LinkedList<LamportRequest> lamportQueue = analogueCommsLWA.getLamportQueue();
+        CopyOnWriteArrayList<LamportRequest> lamportQueue = analogueCommsLWA.getLamportQueue();
 
-        synchronized (lamportQueue){
+        for (LamportRequest lr : lamportQueue) {
+            System.out.println("[LAMPORT (query)]" + lr.toString());
+        }
 
-            for (LamportRequest lr : lamportQueue) {
-                System.out.println("[LAMPORT (query)]" + lr.toString());
-            }
-
-            System.out.println("Cheking access to CS. My process: " + process + "; My clock: " + clock + "; My id: " + id);
-            for (LamportRequest lr : lamportQueue) {
-                System.out.println("[LAMPORT (query conditionals)]" + lr.toString());
-                if (!lr.getProcess().equals(process)) {
-                    if (lr.getClock() < clock) {
-                        available = false;
-                    } else if (lr.getClock() == clock && lr.getId() < id) {
-                        available = false;
-                    }
+        System.out.println("Cheking access to CS. My process: " + process + "; My clock: " + clock + "; My id: " + id);
+        for (LamportRequest lr : lamportQueue) {
+            System.out.println("[LAMPORT (query conditionals)]" + lr.toString());
+            if (!lr.getProcess().equals(process)) {
+                if (lr.getClock() < clock) {
+                    available = false;
+                } else if (lr.getClock() == clock && lr.getId() < id) {
+                    available = false;
                 }
             }
         }
+
         return available;
     }
 
