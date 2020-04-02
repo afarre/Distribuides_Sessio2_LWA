@@ -3,7 +3,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.LinkedList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DedicatedIncomingSocket implements Runnable {
@@ -92,6 +91,18 @@ public class DedicatedIncomingSocket implements Runnable {
     public void myNotify() {
         synchronized (this){
             this.notify();
+        }
+    }
+
+    public void myWait() {
+        synchronized (this){
+            try {
+                System.out.println("prewait incoming socket");
+                this.wait();
+                System.out.println("post wait incoming socket");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

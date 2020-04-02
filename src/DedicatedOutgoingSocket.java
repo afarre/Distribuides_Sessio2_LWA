@@ -105,4 +105,16 @@ public class DedicatedOutgoingSocket extends Thread {
             this.notify();
         }
     }
+
+    public void myWait() {
+        synchronized (this){
+            try {
+                System.out.println("prewait outgoing socket");
+                this.wait();
+                System.out.println("post wait outgoing socket");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

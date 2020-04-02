@@ -57,7 +57,7 @@ public class S_LWA extends Thread {
 
     public synchronized void useScreen() {
         lastExecuted = TMSTP;
-        for (int i = 0; i <= 10; i++){
+        for (int i = 0; i < 10; i++){
             System.out.println("\tSoc el procés lightweight " + TMSTP);
             try {
                 Thread.sleep(1000);
@@ -65,6 +65,22 @@ public class S_LWA extends Thread {
                 e.printStackTrace();
             }
         }
+        if (className.equals("LWA3")){
+            try {
+                doStreamHWA.writeUTF("LWA DONE");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("waiting for test read");
+            try {
+                String aux = diStreamHWA.readUTF();
+                System.out.println("I read: " + aux);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //analogueCommsLWA.stopLWA();
+        }
+        System.out.println("finished useScreen?");
     }
 
 

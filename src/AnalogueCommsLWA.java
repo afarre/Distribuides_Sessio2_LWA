@@ -9,7 +9,7 @@ public class AnalogueCommsLWA extends Thread {
     private final S_LWA s_lwa;
     private String time_stamp_lwa;
     private final ArrayList<Thread> dedicatedThreadList;
-    private final CopyOnWriteArrayList<LamportRequest> lamportQueue;
+    private CopyOnWriteArrayList<LamportRequest> lamportQueue;
     private boolean gotAnswer;
 
     private DedicatedOutgoingSocket firstDedicatedOutgoing;
@@ -183,6 +183,7 @@ public class AnalogueCommsLWA extends Thread {
     }
 
     public synchronized void checkBothAnswers(String process, int clock, int OUTGOING_PORT) {
+        addToQueue(clock, process, id);
         if (!isGotAnswer()){
             if (OUTGOING_PORT == 55556){
                 System.out.println("\tRECEIVING first response");
@@ -224,6 +225,16 @@ public class AnalogueCommsLWA extends Thread {
         }
     }
 
+    public void stopLWA() {
+        System.out.println("vaig a fer el primer");
+        firstDedicatedOutgoing.myWait();
+        System.out.println("vaig a fer el segon");
+        secondDedicatedOutgoing.myWait();
+        System.out.println("vaig a fer el tercer");
+        dedicatedLWA.myWait();
+        System.out.println("done stop lwa");
+    }
+
     public void myNotify() {
         checkCriticalZone.myNotify();
     }
@@ -246,8 +257,6 @@ public class AnalogueCommsLWA extends Thread {
 
     public void useScreen(){
         s_lwa.useScreen();
-        System.out.println("Clock++");
         clock++;
     }
-
 }
