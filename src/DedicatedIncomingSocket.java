@@ -54,6 +54,7 @@ public class DedicatedIncomingSocket implements Runnable {
                 process = diStream.readUTF();
                 clock = diStream.readInt();
                 id = diStream.readInt();
+                System.out.println("\t\t\t\tGot a LAMPORT REQUEST. About to add process (dedicated incoming): " + process);
                 parent.addToQueue(clock, process, id);
 
                 clock = getMyRequestedClock(process);
@@ -97,9 +98,9 @@ public class DedicatedIncomingSocket implements Runnable {
     public void myWait() {
         synchronized (this){
             try {
-                System.out.println("prewait incoming socket");
+                System.out.println("\t\t\t\tprewait incoming socket");
                 this.wait();
-                System.out.println("post wait incoming socket");
+                System.out.println("\t\t\t\tpost wait incoming socket");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

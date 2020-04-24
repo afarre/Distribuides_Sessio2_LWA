@@ -70,6 +70,7 @@ public class DedicatedOutgoingSocket extends Thread {
         doStream.writeInt(id);
         //System.out.println("\t[SENDING] ID: " + id);
 
+        System.out.println("about to add process (dedicated outgoing): " + process);
         analogueCommsLWA.addToQueue(clock, process, id);
         //System.out.println("\t rip sending end?");
 
@@ -81,15 +82,11 @@ public class DedicatedOutgoingSocket extends Thread {
             System.out.println("\tSENDING request (timestamp: " + clock + ") to TIME_STAMP_LWA1");
         }
 
-        try {
-            waitRequestResponse();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        waitRequestResponse();
     }
 
 
-    private void waitRequestResponse() throws IOException, InterruptedException {
+    private void waitRequestResponse() throws IOException {
         //wait for request response
         int clock = diStream.readInt();
 

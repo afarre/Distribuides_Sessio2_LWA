@@ -41,19 +41,7 @@ public class AnalogueCommsLWA extends Thread {
         try {
             //creem el nostre socket
             ServerSocket serverSocket = new ServerSocket(MY_PORT);
-            /*
-            for (int i = 0; i <= 2; i++){
-                Socket socket = serverSocket.accept();
-                newDedicatedAnalogueComms(socket);
-            }
 
-            while (true){
-                synchronized (this){
-                    this.wait();
-                }
-                checkCSAvailability();
-            }
-*/
             while (true){
                 Socket socket = serverSocket.accept();
                 newDedicatedAnalogueComms(socket);
@@ -112,7 +100,7 @@ public class AnalogueCommsLWA extends Thread {
         }
     }
 */
-    public synchronized void addToQueue(int clock, String process, int id) {
+    public void addToQueue(int clock, String process, int id) {
         LamportRequest request = new LamportRequest(clock, process, id);
         System.out.println("Adding request: " + request.toString());
         boolean found = false;
@@ -183,8 +171,13 @@ public class AnalogueCommsLWA extends Thread {
     }
 
     public synchronized void checkBothAnswers(String process, int clock, int OUTGOING_PORT) {
+        /*
+        System.out.println("about to add process (analogue comms): " + process);
         addToQueue(clock, process, id);
+
+         */
         if (!isGotAnswer()){
+            /*
             if (OUTGOING_PORT == 55556){
                 System.out.println("\tRECEIVING first response");
                 System.out.println("\tRECEIVING request response from TIME_STAMP_LWA2");
@@ -194,9 +187,12 @@ public class AnalogueCommsLWA extends Thread {
                 System.out.println("\tRECEIVING request response from TIME_STAMP_LWA1");
             }
 
+             */
+
             //first answer. change flag
             setGotAnswer(true);
         }else {
+            /*
             System.out.println("\tRECEIVING second response");
             if (OUTGOING_PORT == 55556){
                 System.out.println("\tRECEIVING request response from TIME_STAMP_LWA2");
@@ -205,6 +201,8 @@ public class AnalogueCommsLWA extends Thread {
             }else  if (OUTGOING_PORT == 55555){
                 System.out.println("\tRECEIVING request response from TIME_STAMP_LWA1");
             }
+
+             */
 
             //second answer. Must check queue
             System.out.println("\tGot both answers. Checking queue");
