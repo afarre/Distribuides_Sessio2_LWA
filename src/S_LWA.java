@@ -14,6 +14,8 @@ public class S_LWA extends Thread {
     private String lastExecuted;
 
     private ArrayList<LamportRequest> lamportQueue;
+    private TalkToBrotherSocket talkToBrotherSocket;
+    private LamportRequest myRequest;
 
     private String process;
     private int parentPort;
@@ -21,6 +23,7 @@ public class S_LWA extends Thread {
     private int firstPort;
     private int secondPort;
     private int id;
+    private int clock;
 
     public S_LWA(String process, int parentPort, int myPort, int firstPort, int secondPort, int id){
         this.process = process;
@@ -37,7 +40,7 @@ public class S_LWA extends Thread {
 
     @Override
     public synchronized void run() {
-        int clock = 0;
+        clock = 0;
         try {
             connectToParent();
             doStreamHWA.writeUTF("ONLINE");
@@ -46,28 +49,11 @@ public class S_LWA extends Thread {
 
             if (connect){
                 System.out.println("Setting up server with port: " + myPort);
-                TalkToBrotherSocket talkToBrotherSocket = new TalkToBrotherSocket(clock, myPort, firstPort, secondPort, id, process);
-                talkToBrotherSocket.start();
+                SingleThreadedServerClient singleThreadedServerClient = new SingleThreadedServerClient(clock, myPort, firstPort, secondPort, id, process);
+                singleThreadedServerClient.start();
+                //talkToBrotherSocket = new TalkToBrotherSocket(this, clock, myPort, firstPort, secondPort, id, process);
+                //talkToBrotherSocket.start();
 
-                //NIOClient nioClient = new NIOClient(clock, firstPort, secondPort, id, process);
-                //NIOClient.stop();
-                //NIOClient.start(process, firstPort, secondPort);
-
-         /*       try {
-                    wait(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                boolean a = true;
-                while (true){
-                    //TODO: Check if CS is free in order to make a Lamport request.
-                    if (a){
-                        talkToBrotherSocket.makeRequest(process, id);
-                        a = false;
-                   }
-                }
-*/
                 /*
                 DedicatedOutgoingSocket firstDedicatedOutgoing = new DedicatedOutgoingSocket(this, FIRST_OUTGOING_PORT, TMSTP, analogueCommsLWA, id);
                 firstDedicatedOutgoing.start();
@@ -85,6 +71,7 @@ public class S_LWA extends Thread {
         }
     }
 
+
     public synchronized void useScreen() {
         lastExecuted = process;
         for (int i = 0; i < 10; i++){
@@ -96,6 +83,7 @@ public class S_LWA extends Thread {
             }
         }
         if (process.equals("LWA3")){
+            /*
             try {
                 doStreamHWA.writeUTF("LWA DONE");
             } catch (IOException e) {
@@ -109,8 +97,10 @@ public class S_LWA extends Thread {
                 e.printStackTrace();
             }
             //analogueCommsLWA.stopLWA();
+
+             */
+            System.out.println("\tmanage disconnections");
         }
-        System.out.println("finished useScreen?");
     }
 
 
@@ -126,5 +116,83 @@ public class S_LWA extends Thread {
 
     public String getLastExecuted() {
         return lastExecuted;
+    }
+
+    public boolean checkRequest(LamportRequest lamportRequest) {
+        /*System.out.println("\n[DEBUG] Querying lamport queue");
+
+        System.out.println("Checking request: " + lamportQueue.toString());
+        for (int i = 0; i < lamportQueue.size(); i++){
+            System.out.println("[DEBUG] " + lamportQueue.get(i).toString());
+        }
+        System.out.println("Contains: " + lamportQueue.contains(lamportRequest));
+
+
+         */
+        return !lamportQueue.contains(lamportRequest);
+    }
+
+    public void addRequest(LamportRequest lamportRequest) {
+        lamportQueue.add(lamportRequest);
+        if (lamportQueue.size() == 3){
+            talkToBrotherSocket.emptyBuffer();
+            //do{
+                if (checkQueue()){
+                    useScreen();
+                    talkToBrotherSocket.releaseProcess(myRequest);
+                    System.out.println("\nRemoving the following request: " + myRequest);
+                    lamportQueue.remove(myRequest);
+
+                    for (LamportRequest lr : lamportQueue) {
+                        System.out.println("[LAMPORT (removed)]" + lr.toString());
+                    }
+                }else {
+                    for (int i = 0; i <= 10; i++) {
+                        System.out.println("...");
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            //}while (lamportQueue.size() == 3);
+        }
+    }
+
+    private boolean checkQueue() {
+        boolean available = true;
+
+        for (LamportRequest lr : lamportQueue) {
+            System.out.println("[LAMPORT (query)]" + lr.toString());
+        }
+
+       // System.out.println("Cheking access to CS:\n\tMy process: " + process + ";\n\tMy clock: " + clock + ";\n\tMy id: " + id);
+        for (LamportRequest lr : lamportQueue) {
+         //   System.out.println("[LAMPORT (query conditionals for single request)]" + lr.toString());
+            if (!lr.getProcess().equals(process)) {
+           //     System.out.println("\tnom diferent");
+                if (lr.getClock() < clock) {
+             //       System.out.println("\thi ha un amb clock menor. available a false");
+                    available = false;
+                } else if (lr.getClock() == clock && lr.getId() < id) {
+               //     System.out.println("\thi ha un amb id menor. available a false");
+                    available = false;
+                }
+            }
+        }
+        //executedRequest = lamportRequest;
+        return available;
+    }
+
+    public void setSentRequest(LamportRequest lamportRequest) {
+        myRequest = lamportRequest;
+    }
+
+    public void removeRequest(LamportRequest lamportRequest) {
+        lamportQueue.remove(lamportRequest);
+        for (LamportRequest lr: lamportQueue){
+            System.out.println("[DEBUG post remove]: " + lr.toString());
+        }
     }
 }

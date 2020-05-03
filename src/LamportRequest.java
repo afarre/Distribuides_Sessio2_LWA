@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class LamportRequest {
     private int clock;
     private String process;
@@ -28,5 +30,20 @@ public class LamportRequest {
                 ", process='" + process + '\'' +
                 ", id=" + id +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LamportRequest that = (LamportRequest) o;
+        return clock == that.clock &&
+                id == that.id &&
+                process.equals(that.process);
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
     }
 }
