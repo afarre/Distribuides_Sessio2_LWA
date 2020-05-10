@@ -5,7 +5,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/LightWeightsA/S_LWA.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/LightWeightsA/S_LWA.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/S_LWA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/S_LWA.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/SingleThreadedServerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/SingleThreadedServerClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/SingleNonBlocking.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/SingleNonBlocking.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,7 +38,7 @@
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
   </component>
-  <component name="RunManager" selected="Application.LWA3">
+  <component name="RunManager" selected="Application.LWA1">
     <configuration default="true" type="Applet" factoryName="Applet">
       <option name="WIDTH" value="400" />
       <option name="HEIGHT" value="300" />
@@ -170,7 +170,14 @@
       <option name="project" value="LOCAL" />
       <updated>1588506569084</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="SingleNonBlocking added. Working fine pero s'ha de buscar la forma de identificar en quin moment s'han rebut els dos ResponseRequest per a mirar si CS o no CS.">
+      <created>1589101796240</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1589101796240</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -181,7 +188,8 @@
     <MESSAGE value="Implementat rotacio entre els tres LWA i pas de token dels HeavyWeight. Pendent de revisar casos en que la cua no s'actualitza correctament." />
     <MESSAGE value="Implementat sockets NIO en un sol thread. Pendent de perfilar la comunicacio." />
     <MESSAGE value="SingleThreadedServerClient" />
-    <option name="LAST_COMMIT_MESSAGE" value="SingleThreadedServerClient" />
+    <MESSAGE value="SingleNonBlocking added. Working fine pero s'ha de buscar la forma de identificar en quin moment s'han rebut els dos ResponseRequest per a mirar si CS o no CS." />
+    <option name="LAST_COMMIT_MESSAGE" value="SingleNonBlocking added. Working fine pero s'ha de buscar la forma de identificar en quin moment s'han rebut els dos ResponseRequest per a mirar si CS o no CS." />
   </component>
   <component name="WindowStateProjectService">
     <state x="71" y="135" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1588357160006">
@@ -204,30 +212,30 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="516" y="268" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1/0.0.1536.824@0.0.1536.824" timestamp="1587743035919" />
-    <state x="0" y="0" key="CommitChangelistDialog2" timestamp="1588506566298">
+    <state x="126" y="0" key="CommitChangelistDialog2" timestamp="1589101794417">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="0" y="0" key="CommitChangelistDialog2/0.0.1536.824@0.0.1536.824" timestamp="1588506566298" />
+    <state x="126" y="0" key="CommitChangelistDialog2/0.0.1536.824@0.0.1536.824" timestamp="1589101794417" />
     <state x="549" y="168" key="FileChooserDialogImpl" timestamp="1587740856868">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="549" y="168" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1587740856868" />
-    <state width="1493" height="294" key="GridCell.Tab.0.bottom" timestamp="1589101126647">
+    <state width="1493" height="308" key="GridCell.Tab.0.bottom" timestamp="1589107877509">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="294" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1589101126647" />
-    <state width="1493" height="294" key="GridCell.Tab.0.center" timestamp="1589101126647">
+    <state width="1493" height="308" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1589107877509" />
+    <state width="1493" height="308" key="GridCell.Tab.0.center" timestamp="1589107877509">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="294" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1589101126647" />
-    <state width="1493" height="294" key="GridCell.Tab.0.left" timestamp="1589101126647">
+    <state width="1493" height="308" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1589107877509" />
+    <state width="1493" height="308" key="GridCell.Tab.0.left" timestamp="1589107877509">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="294" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1589101126647" />
-    <state width="1493" height="294" key="GridCell.Tab.0.right" timestamp="1589101126647">
+    <state width="1493" height="308" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1589107877509" />
+    <state width="1493" height="308" key="GridCell.Tab.0.right" timestamp="1589107877509">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1493" height="294" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1589101126647" />
+    <state width="1493" height="308" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1589107877509" />
     <state width="1493" height="252" key="GridCell.Tab.1.bottom" timestamp="1588849220583">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
@@ -252,10 +260,10 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="249" y="0" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1588241932579" />
-    <state x="361" y="146" key="Vcs.Push.Dialog.v2" timestamp="1588506571193">
+    <state x="361" y="146" key="Vcs.Push.Dialog.v2" timestamp="1589101799244">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="361" y="146" key="Vcs.Push.Dialog.v2/0.0.1536.824@0.0.1536.824" timestamp="1588506571193" />
+    <state x="361" y="146" key="Vcs.Push.Dialog.v2/0.0.1536.824@0.0.1536.824" timestamp="1589101799244" />
     <state x="463" y="144" width="609" height="536" key="find.popup" timestamp="1588421862849">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
@@ -268,10 +276,10 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="511" y="40" key="refactoring.ChangeSignatureDialog/0.0.1536.824@0.0.1536.824" timestamp="1588415310366" />
-    <state x="425" y="187" key="run.anything.popup" timestamp="1589043031332">
+    <state x="425" y="187" key="run.anything.popup" timestamp="1589103921442">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="425" y="187" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1589043031332" />
+    <state x="425" y="187" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1589103921442" />
     <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1589042735368">
       <screen x="0" y="0" width="1536" height="824" />
     </state>

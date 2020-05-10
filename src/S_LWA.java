@@ -147,6 +147,28 @@ public class S_LWA extends Thread {
             System.out.println("[LAMPORT (query)]" + lr.toString());
         }
 
+        LamportRequest toBeExecuted = null;
+        for (int i = 0; i < lamportQueue.size(); i++){
+            toBeExecuted = lamportQueue.get(i);
+            for (int j = 1; j < lamportQueue.size(); j++){
+                //System.out.println("\t\tComparant clocks de " + toBeExecuted.toString() + " i de " + lamportQueue.get(j).toString());
+                if (lamportQueue.get(j).getClock() < toBeExecuted.getClock()){
+                    toBeExecuted = lamportQueue.get(j);
+                  //  System.out.println("\t\tSame clocks, miro IDs de " + toBeExecuted.toString() + " i de " + lamportQueue.get(j).toString());
+                }else if (lamportQueue.get(j).getClock() == toBeExecuted.getClock() && lamportQueue.get(j).getId() < toBeExecuted.getId()){
+                    //System.out.println("\t\tyeet");
+                    toBeExecuted = lamportQueue.get(j);
+                }
+            }
+            //System.out.println("\t\tEnded first loop, qualified request is " + toBeExecuted.toString());
+            if (toBeExecuted.equals(lamportQueue.get(i))){
+                break;
+            }
+        }
+        System.out.println("Lamport to be executed: " + toBeExecuted.toString());
+        return toBeExecuted.getProcess().equals(process);
+        /*
+
        // System.out.println("Cheking access to CS:\n\tMy process: " + process + ";\n\tMy clock: " + clock + ";\n\tMy id: " + id);
         for (LamportRequest lr : lamportQueue) {
          //   System.out.println("[LAMPORT (query conditionals for single request)]" + lr.toString());
@@ -162,7 +184,7 @@ public class S_LWA extends Thread {
             }
         }
         //executedRequest = lamportRequest;
-        return available;
+        return available;*/
     }
 
     public void setSentRequest(LamportRequest lamportRequest) {

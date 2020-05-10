@@ -20,6 +20,8 @@ public class SingleNonBlocking extends Thread{
 
     private String firstResponder;
     private String secondResponder;
+    private int firstResponderPort;
+    private int secondResponderPort;
     private boolean firstResponse;
     private boolean secondResponse;
 
@@ -55,6 +57,8 @@ public class SingleNonBlocking extends Thread{
         socketChannel2.connect(addr);
         socketChannel2.register(selector, SelectionKey.OP_CONNECT |SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 
+        firstResponderPort = -1;
+        secondResponderPort = -1;
         firstResponse = false;
         secondResponse = false;
     }
@@ -64,7 +68,7 @@ public class SingleNonBlocking extends Thread{
     public void run() {
         try {
             while (true){
-                int keysReady = selector.select();
+                int keysReady = selector.select(1000);
                 System.out.println("There are " + keysReady + " in an I/O ready status.");
 
                 Iterator iterator = selector.selectedKeys().iterator();
@@ -119,10 +123,10 @@ public class SingleNonBlocking extends Thread{
 
                         ByteBuffer bb = ByteBuffer.allocate(1024);
                         bb.clear();
-
                         sc.read(bb);
                         String result = new String(bb.array()).trim();
                         System.out.println("[SERVER] Message received: " + result + " Message length= " + result.length());
+
                         if (result.length() <= 0) {
                             sc.close();
                             System.out.println("Connection closed...");
@@ -131,24 +135,27 @@ public class SingleNonBlocking extends Thread{
                             System.out.println("[SERVER] Got a response request");
                             Gson gson = new Gson();
                             LamportRequest lamportRequest = gson.fromJson(result.replace("ResponseRequest", ""), LamportRequest.class);
-                            System.out.println("\tFirst response = " + firstResponse);
-                            System.out.println("\tSecond response = " + secondResponse);
-                            if (lamportRequest.getProcess().equals(firstResponder) && !firstResponse){
-                                firstResponse = true;
-                                System.out.println("\tFirst response = " + firstResponse);
-                            }else if (lamportRequest.getProcess().equals(secondResponder) && !secondResponse){
-                                secondResponse = true;
-                                System.out.println("\tSecond response = " + secondResponse);
-                            }
+                            assignResponder(lamportRequest.getProcess(), "ResponseRequest");
                             if (firstResponse && secondResponse){
                                 done();
                             }
                         }else if(result.contains("RemoveRequest") && result.contains("LamportRequest")) {
                             String aux[] = result.split("LamportRequest");
-                            //lamportRequest
+                            //remove
                             Gson gson = new Gson();
-                            LamportRequest lamportRequest = gson.fromJson(aux[1], LamportRequest.class);
-                            assignResponder(lamportRequest.getProcess());
+                            LamportRequest lamportRequest = gson.fromJson(aux[0].replace("RemoveRequest", ""), LamportRequest.class);
+                            System.out.println("[SERVER] Got RemoveRequest: " + lamportRequest);
+                            s_lwa.removeRequest(lamportRequest);
+                            assignResponder(lamportRequest.getProcess(), "RemoveRequest");
+
+                            if (firstResponse && secondResponse){
+                                done();
+                            }
+
+                            //lamportRequest
+                            gson = new Gson();
+                            lamportRequest = gson.fromJson(aux[1], LamportRequest.class);
+                            //assignResponder(lamportRequest.getProcess());
                             s_lwa.addRequest(lamportRequest);
                             result = this.lamportRequest.toString().replace("LamportRequest", "ResponseRequest");
                             System.out.println("[SERVER] Answering: " + result);
@@ -156,25 +163,10 @@ public class SingleNonBlocking extends Thread{
                             bb.put (result.getBytes());
                             bb.flip();
                             sc.write (bb);
-
-                            //remove
-                            gson = new Gson();
-                            lamportRequest = gson.fromJson(aux[0].replace("RemoveRequest", ""), LamportRequest.class);
-                            System.out.println("[SERVER] Got RemoveRequest: " + lamportRequest);
-                            s_lwa.removeRequest(lamportRequest);
-                            System.out.println("\tFirst response = " + firstResponse);
-                            System.out.println("\tSecond response = " + secondResponse);
-                            if (lamportRequest.getProcess().equals(firstResponder) && firstResponse){
-                                firstResponse = false;
-                                System.out.println("\tFirst response = " + firstResponse);
-                            }else if (lamportRequest.getProcess().equals(secondResponder) && secondResponse){
-                                secondResponse = false;
-                                System.out.println("\tSecond response = " + secondResponse);
-                            }
                         }else if (result.contains("LamportRequest")) {
                             Gson gson = new Gson();
                             LamportRequest lamportRequest = gson.fromJson(result.replace("LamportRequest", ""), LamportRequest.class);
-                            assignResponder(lamportRequest.getProcess());
+                            assignResponder(lamportRequest.getProcess(), "LamportRequest");
                             s_lwa.addRequest(lamportRequest);
                             result = this.lamportRequest.toString().replace("LamportRequest", "ResponseRequest");
                             System.out.println("[SERVER] Answering: " + result);
@@ -189,14 +181,10 @@ public class SingleNonBlocking extends Thread{
                             LamportRequest lamportRequest = gson.fromJson(result.replace("RemoveRequest", ""), LamportRequest.class);
                             System.out.println("[SERVER] Got RemoveRequest: " + lamportRequest);
                             s_lwa.removeRequest(lamportRequest);
-                            System.out.println("\tFirst response = " + firstResponse);
-                            System.out.println("\tSecond response = " + secondResponse);
-                            if (lamportRequest.getProcess().equals(firstResponder) && firstResponse){
-                                firstResponse = false;
-                                System.out.println("\tFirst response = " + firstResponse);
-                            }else if (lamportRequest.getProcess().equals(secondResponder) && secondResponse){
-                                secondResponse = false;
-                                System.out.println("\tSecond response = " + secondResponse);
+                            assignResponder(lamportRequest.getProcess(), "RemoveRequest");
+
+                            if (firstResponse && secondResponse){
+                                done();
                             }
                         }
                     }
@@ -231,14 +219,39 @@ public class SingleNonBlocking extends Thread{
 
     }
 
-    private void assignResponder(String process) {
+    private void assignResponder(String process, String ops) {
         if (firstResponder == null){
             firstResponder = process;
-            System.out.println("\tFirst responder = " + process);
-        }else if (secondResponder == null){
+            System.out.println("\tFirst responder = " + firstResponder);
+        }else if (secondResponder == null && !process.equals(firstResponder)){
             secondResponder = process;
-            System.out.println("\tSecond responder = " + process);
+            System.out.println("\tSecond responder = " + secondResponder);
         }
+
+        System.out.println("\tFirst responder = " + firstResponder);
+        System.out.println("\tSecond responder = " + secondResponder);
+        System.out.println("\tFirst response = " + firstResponse);
+        System.out.println("\tSecond response = " + secondResponse);
+        if (ops.equals("LamportRequest")){
+
+        }else if (ops.equals("RemoveRequest")){
+            /*
+            if (process.equals(firstResponder)){
+                firstResponse = false;
+            }else if (process.equals(secondResponder)){
+                secondResponse = false;
+            }
+
+             */
+        }else if (ops.equals("ResponseRequest")){
+            if (process.equals(firstResponder)){
+                firstResponse = true;
+            }else if (process.equals(secondResponder)){
+                secondResponse = true;
+            }
+        }
+        System.out.println("\tFirst response = " + firstResponse);
+        System.out.println("\tSecond response = " + secondResponse);
     }
 
 
@@ -270,6 +283,7 @@ public class SingleNonBlocking extends Thread{
 
         bb = ByteBuffer.wrap(msg.getBytes());
         socketChannel2.write(bb);
+        s_lwa.removeRequest(lamportRequest);
 
         //Send newly updated LamportRequest
         clock++;
@@ -280,7 +294,7 @@ public class SingleNonBlocking extends Thread{
 
         bb = ByteBuffer.wrap(lamportRequest.toString().getBytes());
         socketChannel2.write(bb);
-
+        s_lwa.addRequest(lamportRequest);
     }
 
 
