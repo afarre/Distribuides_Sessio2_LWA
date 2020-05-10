@@ -49,8 +49,10 @@ public class S_LWA extends Thread {
 
             if (connect){
                 System.out.println("Setting up server with port: " + myPort);
-                SingleThreadedServerClient singleThreadedServerClient = new SingleThreadedServerClient(clock, myPort, firstPort, secondPort, id, process);
-                singleThreadedServerClient.start();
+                //SingleThreadedServerClient singleThreadedServerClient = new SingleThreadedServerClient(this, clock, myPort, firstPort, secondPort, id, process);
+                //singleThreadedServerClient.start();
+                SingleNonBlocking singleNonBlocking = new SingleNonBlocking(this, clock, myPort, firstPort, secondPort, id, process);
+                singleNonBlocking.start();
                 //talkToBrotherSocket = new TalkToBrotherSocket(this, clock, myPort, firstPort, secondPort, id, process);
                 //talkToBrotherSocket.start();
 
@@ -133,34 +135,12 @@ public class S_LWA extends Thread {
     }
 
     public void addRequest(LamportRequest lamportRequest) {
-        lamportQueue.add(lamportRequest);
-        if (lamportQueue.size() == 3){
-            talkToBrotherSocket.emptyBuffer();
-            //do{
-                if (checkQueue()){
-                    useScreen();
-                    talkToBrotherSocket.releaseProcess(myRequest);
-                    System.out.println("\nRemoving the following request: " + myRequest);
-                    lamportQueue.remove(myRequest);
-
-                    for (LamportRequest lr : lamportQueue) {
-                        System.out.println("[LAMPORT (removed)]" + lr.toString());
-                    }
-                }else {
-                    for (int i = 0; i <= 10; i++) {
-                        System.out.println("...");
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            //}while (lamportQueue.size() == 3);
+        if (!lamportQueue.contains(lamportRequest)){
+            lamportQueue.add(lamportRequest);
         }
     }
 
-    private boolean checkQueue() {
+    public boolean checkQueue() {
         boolean available = true;
 
         for (LamportRequest lr : lamportQueue) {
@@ -191,8 +171,17 @@ public class S_LWA extends Thread {
 
     public void removeRequest(LamportRequest lamportRequest) {
         lamportQueue.remove(lamportRequest);
+        /*
         for (LamportRequest lr: lamportQueue){
             System.out.println("[DEBUG post remove]: " + lr.toString());
+        }
+
+         */
+    }
+
+    public void checkCS() {
+        for (LamportRequest lr : lamportQueue){
+            System.out.println(lr.toString());
         }
     }
 }
