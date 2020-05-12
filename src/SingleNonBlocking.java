@@ -1,35 +1,36 @@
 import com.google.gson.Gson;
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PipedReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
 
 public class SingleNonBlocking extends Thread{
-    private Selector selector;
-    private ServerSocketChannel serverSocketChannel;
-    private SocketChannel socketChannel1;
-    private SocketChannel socketChannel2;
+    /** Classes necesaries per als NIO sockets **/
+    private final Selector selector;
+    private final ServerSocketChannel serverSocketChannel;
+    private final SocketChannel socketChannel1;
+    private final SocketChannel socketChannel2;
 
+    /** Variables per al control de la comunicacio **/
     private String firstResponder;
     private String secondResponder;
-    private int firstResponderPort;
-    private int secondResponderPort;
     private boolean firstResponse;
     private boolean secondResponse;
 
+    /**  **/
+    private final static String LAMPORT_REQUEST = "LamportRequest";
+    private final static String RESPONSE_REQUEST = "ResponseRequest";
+    private final static String REMOVE_REQUEST = "RemoveRequest";
+
+    /** Variables relacionades amb Lamport i la comunicacio entre classes **/
     private LamportRequest lamportRequest;
     private int clock;
-    private String process;
-    private int id;
-    private S_LWA s_lwa;
+    private final String process;
+    private final int id;
+    private final S_LWA s_lwa;
 
     public SingleNonBlocking(S_LWA s_lwa, int clock, int myPort, int firstPort, int secondPort, int id, String process) throws IOException {
         this.s_lwa = s_lwa;
@@ -38,6 +39,7 @@ public class SingleNonBlocking extends Thread{
         this.id = id;
         lamportRequest = new LamportRequest(clock, process, id);
 
+        // Creo el servidor
         InetAddress host = InetAddress.getByName("localhost");
         selector = Selector.open();
         serverSocketChannel = ServerSocketChannel.open();
@@ -45,20 +47,20 @@ public class SingleNonBlocking extends Thread{
         serverSocketChannel.bind(new InetSocketAddress(host, myPort));
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
+        // Creo el primer client
         InetSocketAddress addr = new InetSocketAddress(InetAddress.getByName("localhost"), firstPort);
         socketChannel1 = SocketChannel.open();
         socketChannel1.configureBlocking(false);
         socketChannel1.connect(addr);
         socketChannel1.register(selector, SelectionKey.OP_CONNECT |SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 
+        // Creo el segon client
         addr = new InetSocketAddress(InetAddress.getByName("localhost"), secondPort);
         socketChannel2 = SocketChannel.open();
         socketChannel2.configureBlocking(false);
         socketChannel2.connect(addr);
         socketChannel2.register(selector, SelectionKey.OP_CONNECT |SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 
-        firstResponderPort = -1;
-        secondResponderPort = -1;
         firstResponse = false;
         secondResponse = false;
     }
@@ -68,51 +70,58 @@ public class SingleNonBlocking extends Thread{
     public void run() {
         try {
             while (true){
-                int keysReady = selector.select(1000);
-                System.out.println("There are " + keysReady + " in an I/O ready status.");
+                // Esperem a que s'activi algun flag d'alguna key del selector
+                selector.select(500);
 
+                // Iterem sobre aquelles keys que tenen algun flag activat
                 Iterator iterator = selector.selectedKeys().iterator();
                 while (iterator.hasNext()){
-                    System.out.println("\n~~~~SELECTING NEXT KEY~~~~");
+                    //System.out.println("\n~~~~SELECTING NEXT KEY~~~~");
                     SelectionKey key = (SelectionKey)iterator.next();
+                    // Eliminem la key del Set per evitar queryejar-la quan ja no tingui cap flag activat
                     iterator.remove();
 
+                    // Acceptable: Flag atribuit nomes al servidor (ServerSocketChannel) per a conexions entrants.
                     if (key.isAcceptable()){
                         SocketChannel sc = serverSocketChannel.accept();
                         sc.configureBlocking(false);
                         sc.register(selector, SelectionKey.OP_READ);
-                        System.out.println("[SERVER] Connection Accepted: " + sc.getRemoteAddress());
+                        //System.out.println("[SERVER] Connection Accepted: " + sc.getRemoteAddress());
                         key.attach(sc.getRemoteAddress());
 
-                        if (key.attachment() == null){
+                        /*if (key.attachment() == null){
                             System.out.println("Key attachment: this key has no attachments");
                         }else {
                             System.out.println("Key attachment: " + key.attachment().toString());
                         }
 
+                         */
                     }
 
+                    // Connectable: Key atribuida a clients, on es valida la conexio.
                     if (key.isConnectable()){
                         Boolean connected = processConnect(key);
-                        System.out.println("[CLIENT] Key connected: " + ((SocketChannel)key.channel()).getLocalAddress());
+                        //System.out.println("[CLIENT] Key connected: " + ((SocketChannel)key.channel()).getLocalAddress());
                         key.attach("CLIENT: " + ((SocketChannel)key.channel()).getLocalAddress());
                         if (!connected) {
                             return;
                         }
-
+/*
                         if (key.attachment() == null){
                             System.out.println("Key attachment: this key has no attachments");
                         }else {
                             System.out.println("Key attachment: " + key.attachment().toString());
                         }
 
+
+ */
                     }
 
-
+                    // Readable: La key te algun missatge per a ser llegit
                     if (key.isReadable()){
                         SocketChannel sc = (SocketChannel) key.channel();
-                        System.out.println("Key operation: Read");
-
+                        // System.out.println("Key operation: Read");
+/*
                         if (key.attachment() == null){
                             System.out.println("Key attachment: this key has no attachments, attaching it.");
                             key.attach("SERVER: " + sc.getRemoteAddress());
@@ -120,68 +129,63 @@ public class SingleNonBlocking extends Thread{
                         }else {
                             System.out.println("Key attachment: " + key.attachment().toString());
                         }
-
+*/
                         ByteBuffer bb = ByteBuffer.allocate(1024);
                         bb.clear();
                         sc.read(bb);
                         String result = new String(bb.array()).trim();
-                        System.out.println("[SERVER] Message received: " + result + " Message length= " + result.length());
+                        //System.out.println("[SERVER] Message received: " + result + " Message length= " + result.length());
 
-                        if (result.length() <= 0) {
-                            sc.close();
-                            System.out.println("Connection closed...");
-                            System.out.println("Server will keep running. Try running another client to re-establish connection");
-                        }else if (result.contains("ResponseRequest")) {
-                            System.out.println("[SERVER] Got a response request");
+                        // En base al missatge llegir, ens comportem/contestem d'una forma o una altra
+                        if (result.contains(RESPONSE_REQUEST)) {
                             Gson gson = new Gson();
-                            LamportRequest lamportRequest = gson.fromJson(result.replace("ResponseRequest", ""), LamportRequest.class);
-                            assignResponder(lamportRequest.getProcess(), "ResponseRequest");
+                            LamportRequest lamportRequest = gson.fromJson(result.replace(RESPONSE_REQUEST, ""), LamportRequest.class);
+                            assignResponder(lamportRequest.getProcess(), RESPONSE_REQUEST);
                             if (firstResponse && secondResponse){
                                 done();
                             }
-                        }else if(result.contains("RemoveRequest") && result.contains("LamportRequest")) {
-                            String aux[] = result.split("LamportRequest");
-                            //remove
+
+                        }else if(result.contains(REMOVE_REQUEST) && result.contains(LAMPORT_REQUEST)) {
+                            String[] aux = result.split(LAMPORT_REQUEST);
                             Gson gson = new Gson();
-                            LamportRequest lamportRequest = gson.fromJson(aux[0].replace("RemoveRequest", ""), LamportRequest.class);
-                            System.out.println("[SERVER] Got RemoveRequest: " + lamportRequest);
+                            LamportRequest lamportRequest = gson.fromJson(aux[0].replace(REMOVE_REQUEST, ""), LamportRequest.class);
+                            //System.out.println("[SERVER] Got RemoveRequest: " + lamportRequest);
                             s_lwa.removeRequest(lamportRequest);
-                            assignResponder(lamportRequest.getProcess(), "RemoveRequest");
+                            assignResponder(lamportRequest.getProcess(), REMOVE_REQUEST);
 
                             if (firstResponse && secondResponse){
                                 done();
                             }
 
-                            //lamportRequest
                             gson = new Gson();
                             lamportRequest = gson.fromJson(aux[1], LamportRequest.class);
                             //assignResponder(lamportRequest.getProcess());
                             s_lwa.addRequest(lamportRequest);
-                            result = this.lamportRequest.toString().replace("LamportRequest", "ResponseRequest");
-                            System.out.println("[SERVER] Answering: " + result);
+                            result = this.lamportRequest.toString().replace(LAMPORT_REQUEST, RESPONSE_REQUEST);
+                            //System.out.println("[SERVER] Answering: " + result);
                             bb.clear();
                             bb.put (result.getBytes());
                             bb.flip();
                             sc.write (bb);
-                        }else if (result.contains("LamportRequest")) {
+
+                        }else if (result.contains(LAMPORT_REQUEST)) {
                             Gson gson = new Gson();
-                            LamportRequest lamportRequest = gson.fromJson(result.replace("LamportRequest", ""), LamportRequest.class);
-                            assignResponder(lamportRequest.getProcess(), "LamportRequest");
+                            LamportRequest lamportRequest = gson.fromJson(result.replace(LAMPORT_REQUEST, ""), LamportRequest.class);
+                            assignResponder(lamportRequest.getProcess(), LAMPORT_REQUEST);
                             s_lwa.addRequest(lamportRequest);
-                            result = this.lamportRequest.toString().replace("LamportRequest", "ResponseRequest");
-                            System.out.println("[SERVER] Answering: " + result);
+                            result = this.lamportRequest.toString().replace(LAMPORT_REQUEST, RESPONSE_REQUEST);
+                            //System.out.println("[SERVER] Answering: " + result);
                             bb.clear();
-
                             bb.put (result.getBytes());
                             bb.flip();
-
                             sc.write (bb);
-                        }else if (result.contains("RemoveRequest")){
+
+                        }else if (result.contains(REMOVE_REQUEST)){
                             Gson gson = new Gson();
-                            LamportRequest lamportRequest = gson.fromJson(result.replace("RemoveRequest", ""), LamportRequest.class);
-                            System.out.println("[SERVER] Got RemoveRequest: " + lamportRequest);
+                            LamportRequest lamportRequest = gson.fromJson(result.replace(REMOVE_REQUEST, ""), LamportRequest.class);
+                            //System.out.println("[SERVER] Got RemoveRequest: " + lamportRequest);
                             s_lwa.removeRequest(lamportRequest);
-                            assignResponder(lamportRequest.getProcess(), "RemoveRequest");
+                            assignResponder(lamportRequest.getProcess(), REMOVE_REQUEST);
 
                             if (firstResponse && secondResponse){
                                 done();
@@ -189,18 +193,19 @@ public class SingleNonBlocking extends Thread{
                         }
                     }
 
+                    // Writable: La key te el flag d'escriptura activat
                     if (key.isWritable()){
-                        System.out.println("Key operation: Write");
+                       /* System.out.println("Key operation: Write");
                         if (key.attachment() == null){
                             System.out.println("Key attachment: this key has no attachments");
                         }else {
                             System.out.println("Key attachment: " + key.attachment().toString());
                         }
 
-                        //System.out.print("Type a message (type quit to stop): ");
-                        //String msg = input.readLine();
+                         */
+
                         String msg = lamportRequest.toString();
-                        System.out.println("[CLIENT] Writing: " + msg);
+                        //System.out.println("[CLIENT] Writing: " + msg);
                         if (msg.equalsIgnoreCase("quit")) {
                             return;
                         }
@@ -211,73 +216,44 @@ public class SingleNonBlocking extends Thread{
                         sc.register(selector, SelectionKey.OP_READ);
                     }
                 }
-                System.out.println("\n\n-_-_-_-SELECTING NEW KEY SET-_-_-_-");
+                //System.out.println("\n\n-_-_-_-SELECTING NEW KEY SET-_-_-_-");
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private void assignResponder(String process, String ops) {
         if (firstResponder == null){
             firstResponder = process;
-            System.out.println("\tFirst responder = " + firstResponder);
         }else if (secondResponder == null && !process.equals(firstResponder)){
             secondResponder = process;
-            System.out.println("\tSecond responder = " + secondResponder);
         }
 
-        System.out.println("\tFirst responder = " + firstResponder);
-        System.out.println("\tSecond responder = " + secondResponder);
-        System.out.println("\tFirst response = " + firstResponse);
-        System.out.println("\tSecond response = " + secondResponse);
-        if (ops.equals("LamportRequest")){
-
-        }else if (ops.equals("RemoveRequest")){
-            /*
-            if (process.equals(firstResponder)){
-                firstResponse = false;
-            }else if (process.equals(secondResponder)){
-                secondResponse = false;
-            }
-
-             */
-        }else if (ops.equals("ResponseRequest")){
+        if (ops.equals(RESPONSE_REQUEST)){
             if (process.equals(firstResponder)){
                 firstResponse = true;
             }else if (process.equals(secondResponder)){
                 secondResponse = true;
             }
         }
-        System.out.println("\tFirst response = " + firstResponse);
-        System.out.println("\tSecond response = " + secondResponse);
     }
 
 
     private void done() throws IOException {
-        System.out.println("\nGot both responses. Exiting.");
+        //System.out.println("\nGot both responses. Exiting.");
         //System.exit(0);
         if (s_lwa.checkQueue()){
             s_lwa.useScreen();
             sendRemove();
-        }/*else {
-
-            for (int i = 0; i <= 10; i++) {
-                System.out.println("...");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }*/
+            s_lwa.communicateDone(process);
+        }
     }
 
     private void sendRemove() throws IOException {
         //Send remove
-        String msg = lamportRequest.toString().replace("LamportRequest", "RemoveRequest");
-        System.out.println("[CLIENT] Sending: " + msg);
+        String msg = lamportRequest.toString().replace(LAMPORT_REQUEST, REMOVE_REQUEST);
+        //System.out.println("[CLIENT] Sending: " + msg);
         ByteBuffer bb = ByteBuffer.wrap(msg.getBytes());
         socketChannel1.write(bb);
 

@@ -1,5 +1,3 @@
-import java.util.Objects;
-
 public class LamportRequest {
     private int clock;
     private String process;

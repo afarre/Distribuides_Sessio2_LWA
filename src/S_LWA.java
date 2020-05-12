@@ -10,12 +10,7 @@ public class S_LWA extends Thread {
     private DataInputStream diStreamHWA;
     private DataOutputStream doStreamHWA;
 
-    //private AnalogueCommsLWA analogueCommsLWA;
-    private String lastExecuted;
-
     private ArrayList<LamportRequest> lamportQueue;
-    private TalkToBrotherSocket talkToBrotherSocket;
-    private LamportRequest myRequest;
 
     private String process;
     private int parentPort;
@@ -33,9 +28,6 @@ public class S_LWA extends Thread {
         this.secondPort = secondPort;
         this.id = id;
         lamportQueue = new ArrayList<>();
-        //analogueCommsLWA = new AnalogueCommsLWA(this, myPort, time_stamp_lwa, id);
-        //analogueCommsLWA.start();
-        lastExecuted = "";
     }
 
     @Override
@@ -49,23 +41,8 @@ public class S_LWA extends Thread {
 
             if (connect){
                 System.out.println("Setting up server with port: " + myPort);
-                //SingleThreadedServerClient singleThreadedServerClient = new SingleThreadedServerClient(this, clock, myPort, firstPort, secondPort, id, process);
-                //singleThreadedServerClient.start();
                 SingleNonBlocking singleNonBlocking = new SingleNonBlocking(this, clock, myPort, firstPort, secondPort, id, process);
                 singleNonBlocking.start();
-                //talkToBrotherSocket = new TalkToBrotherSocket(this, clock, myPort, firstPort, secondPort, id, process);
-                //talkToBrotherSocket.start();
-
-                /*
-                DedicatedOutgoingSocket firstDedicatedOutgoing = new DedicatedOutgoingSocket(this, FIRST_OUTGOING_PORT, TMSTP, analogueCommsLWA, id);
-                firstDedicatedOutgoing.start();
-                DedicatedOutgoingSocket secondDedicatedOutgoing = new DedicatedOutgoingSocket(this, SECOND_OUTGOING_PORT, TMSTP, analogueCommsLWA, id);
-                secondDedicatedOutgoing.start();
-                analogueCommsLWA.registerDedicateds(firstDedicatedOutgoing, secondDedicatedOutgoing);
-
-
-                 */
-                //analogueCommsLWA.makeRequest();
             }
         } catch (ConnectException ignored) {
         } catch (IOException e) {
@@ -73,9 +50,8 @@ public class S_LWA extends Thread {
         }
     }
 
-
     public synchronized void useScreen() {
-        lastExecuted = process;
+        parentAllowance();
         for (int i = 0; i < 10; i++){
             System.out.println("\tSoc el procés lightweight " + process);
             try {
@@ -84,27 +60,20 @@ public class S_LWA extends Thread {
                 e.printStackTrace();
             }
         }
-        if (process.equals("LWA3")){
-            /*
-            try {
-                doStreamHWA.writeUTF("LWA DONE");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            System.out.println("waiting for test read");
-            try {
-                String aux = diStreamHWA.readUTF();
-                System.out.println("I read: " + aux);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            //analogueCommsLWA.stopLWA();
-
-             */
-            System.out.println("\tmanage disconnections");
-        }
     }
 
+    private void parentAllowance() {
+        try {
+            doStreamHWA.writeUTF("RUN STATUS");
+            boolean childsDone = diStreamHWA.readBoolean();
+            System.out.println("Reading childsDone = " + childsDone);
+            if (childsDone){
+                diStreamHWA.readUTF();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private void connectToParent() throws IOException {
         InetAddress iAddress = InetAddress.getLocalHost();
@@ -116,24 +85,6 @@ public class S_LWA extends Thread {
         diStreamHWA = new DataInputStream(socketHWA.getInputStream());
     }
 
-    public String getLastExecuted() {
-        return lastExecuted;
-    }
-
-    public boolean checkRequest(LamportRequest lamportRequest) {
-        /*System.out.println("\n[DEBUG] Querying lamport queue");
-
-        System.out.println("Checking request: " + lamportQueue.toString());
-        for (int i = 0; i < lamportQueue.size(); i++){
-            System.out.println("[DEBUG] " + lamportQueue.get(i).toString());
-        }
-        System.out.println("Contains: " + lamportQueue.contains(lamportRequest));
-
-
-         */
-        return !lamportQueue.contains(lamportRequest);
-    }
-
     public void addRequest(LamportRequest lamportRequest) {
         if (!lamportQueue.contains(lamportRequest)){
             lamportQueue.add(lamportRequest);
@@ -141,69 +92,37 @@ public class S_LWA extends Thread {
     }
 
     public boolean checkQueue() {
-        boolean available = true;
 
-        for (LamportRequest lr : lamportQueue) {
-            System.out.println("[LAMPORT (query)]" + lr.toString());
-        }
+        //for (LamportRequest lr : lamportQueue) {
+        //   System.out.println("[LAMPORT (query)]" + lr.toString());
+        // }
 
         LamportRequest toBeExecuted = null;
         for (int i = 0; i < lamportQueue.size(); i++){
             toBeExecuted = lamportQueue.get(i);
             for (int j = 1; j < lamportQueue.size(); j++){
-                //System.out.println("\t\tComparant clocks de " + toBeExecuted.toString() + " i de " + lamportQueue.get(j).toString());
                 if (lamportQueue.get(j).getClock() < toBeExecuted.getClock()){
                     toBeExecuted = lamportQueue.get(j);
-                  //  System.out.println("\t\tSame clocks, miro IDs de " + toBeExecuted.toString() + " i de " + lamportQueue.get(j).toString());
                 }else if (lamportQueue.get(j).getClock() == toBeExecuted.getClock() && lamportQueue.get(j).getId() < toBeExecuted.getId()){
-                    //System.out.println("\t\tyeet");
                     toBeExecuted = lamportQueue.get(j);
                 }
             }
-            //System.out.println("\t\tEnded first loop, qualified request is " + toBeExecuted.toString());
             if (toBeExecuted.equals(lamportQueue.get(i))){
                 break;
             }
         }
-        System.out.println("Lamport to be executed: " + toBeExecuted.toString());
+        //System.out.println("Lamport to be executed: " + toBeExecuted.toString());
         return toBeExecuted.getProcess().equals(process);
-        /*
-
-       // System.out.println("Cheking access to CS:\n\tMy process: " + process + ";\n\tMy clock: " + clock + ";\n\tMy id: " + id);
-        for (LamportRequest lr : lamportQueue) {
-         //   System.out.println("[LAMPORT (query conditionals for single request)]" + lr.toString());
-            if (!lr.getProcess().equals(process)) {
-           //     System.out.println("\tnom diferent");
-                if (lr.getClock() < clock) {
-             //       System.out.println("\thi ha un amb clock menor. available a false");
-                    available = false;
-                } else if (lr.getClock() == clock && lr.getId() < id) {
-               //     System.out.println("\thi ha un amb id menor. available a false");
-                    available = false;
-                }
-            }
-        }
-        //executedRequest = lamportRequest;
-        return available;*/
-    }
-
-    public void setSentRequest(LamportRequest lamportRequest) {
-        myRequest = lamportRequest;
     }
 
     public void removeRequest(LamportRequest lamportRequest) {
         lamportQueue.remove(lamportRequest);
-        /*
-        for (LamportRequest lr: lamportQueue){
-            System.out.println("[DEBUG post remove]: " + lr.toString());
-        }
-
-         */
     }
 
-    public void checkCS() {
-        for (LamportRequest lr : lamportQueue){
-            System.out.println(lr.toString());
-        }
+    public void communicateDone(String process) throws IOException {
+        doStreamHWA.writeUTF("LWA DONE");
+        doStreamHWA.writeUTF(process);
+        System.out.println("Sending done");
+
     }
 }
