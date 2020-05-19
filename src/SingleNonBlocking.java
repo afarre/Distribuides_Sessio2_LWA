@@ -76,7 +76,6 @@ public class SingleNonBlocking extends Thread{
                 // Iterem sobre aquelles keys que tenen algun flag activat
                 Iterator iterator = selector.selectedKeys().iterator();
                 while (iterator.hasNext()){
-                    //System.out.println("\n~~~~SELECTING NEXT KEY~~~~");
                     SelectionKey key = (SelectionKey)iterator.next();
                     // Eliminem la key del Set per evitar queryejar-la quan ja no tingui cap flag activat
                     iterator.remove();
@@ -88,55 +87,27 @@ public class SingleNonBlocking extends Thread{
                         sc.register(selector, SelectionKey.OP_READ);
                         //System.out.println("[SERVER] Connection Accepted: " + sc.getRemoteAddress());
                         key.attach(sc.getRemoteAddress());
-
-                        /*if (key.attachment() == null){
-                            System.out.println("Key attachment: this key has no attachments");
-                        }else {
-                            System.out.println("Key attachment: " + key.attachment().toString());
-                        }
-
-                         */
                     }
 
                     // Connectable: Key atribuida a clients, on es valida la conexio.
                     if (key.isConnectable()){
                         Boolean connected = processConnect(key);
-                        //System.out.println("[CLIENT] Key connected: " + ((SocketChannel)key.channel()).getLocalAddress());
                         key.attach("CLIENT: " + ((SocketChannel)key.channel()).getLocalAddress());
                         if (!connected) {
                             return;
                         }
-/*
-                        if (key.attachment() == null){
-                            System.out.println("Key attachment: this key has no attachments");
-                        }else {
-                            System.out.println("Key attachment: " + key.attachment().toString());
-                        }
-
-
- */
                     }
 
                     // Readable: La key te algun missatge per a ser llegit
                     if (key.isReadable()){
                         SocketChannel sc = (SocketChannel) key.channel();
-                        // System.out.println("Key operation: Read");
-/*
-                        if (key.attachment() == null){
-                            System.out.println("Key attachment: this key has no attachments, attaching it.");
-                            key.attach("SERVER: " + sc.getRemoteAddress());
-                            System.out.println("Key attachment: " + key.attachment().toString());
-                        }else {
-                            System.out.println("Key attachment: " + key.attachment().toString());
-                        }
-*/
                         ByteBuffer bb = ByteBuffer.allocate(1024);
                         bb.clear();
                         sc.read(bb);
                         String result = new String(bb.array()).trim();
-                        //System.out.println("[SERVER] Message received: " + result + " Message length= " + result.length());
+                        System.out.println("I got " + result);
 
-                        // En base al missatge llegir, ens comportem/contestem d'una forma o una altra
+                        // En base al missatge llegit, ens comportem/contestem d'una forma o una altra
                         if (result.contains(RESPONSE_REQUEST)) {
                             Gson gson = new Gson();
                             LamportRequest lamportRequest = gson.fromJson(result.replace(RESPONSE_REQUEST, ""), LamportRequest.class);
@@ -149,7 +120,6 @@ public class SingleNonBlocking extends Thread{
                             String[] aux = result.split(LAMPORT_REQUEST);
                             Gson gson = new Gson();
                             LamportRequest lamportRequest = gson.fromJson(aux[0].replace(REMOVE_REQUEST, ""), LamportRequest.class);
-                            //System.out.println("[SERVER] Got RemoveRequest: " + lamportRequest);
                             s_lwa.removeRequest(lamportRequest);
                             assignResponder(lamportRequest.getProcess(), REMOVE_REQUEST);
 
@@ -159,10 +129,9 @@ public class SingleNonBlocking extends Thread{
 
                             gson = new Gson();
                             lamportRequest = gson.fromJson(aux[1], LamportRequest.class);
-                            //assignResponder(lamportRequest.getProcess());
                             s_lwa.addRequest(lamportRequest);
                             result = this.lamportRequest.toString().replace(LAMPORT_REQUEST, RESPONSE_REQUEST);
-                            //System.out.println("[SERVER] Answering: " + result);
+                            System.out.println("Writing: " + result);
                             bb.clear();
                             bb.put (result.getBytes());
                             bb.flip();
@@ -174,7 +143,7 @@ public class SingleNonBlocking extends Thread{
                             assignResponder(lamportRequest.getProcess(), LAMPORT_REQUEST);
                             s_lwa.addRequest(lamportRequest);
                             result = this.lamportRequest.toString().replace(LAMPORT_REQUEST, RESPONSE_REQUEST);
-                            //System.out.println("[SERVER] Answering: " + result);
+                            System.out.println("Writing: " + result);
                             bb.clear();
                             bb.put (result.getBytes());
                             bb.flip();
@@ -183,7 +152,6 @@ public class SingleNonBlocking extends Thread{
                         }else if (result.contains(REMOVE_REQUEST)){
                             Gson gson = new Gson();
                             LamportRequest lamportRequest = gson.fromJson(result.replace(REMOVE_REQUEST, ""), LamportRequest.class);
-                            //System.out.println("[SERVER] Got RemoveRequest: " + lamportRequest);
                             s_lwa.removeRequest(lamportRequest);
                             assignResponder(lamportRequest.getProcess(), REMOVE_REQUEST);
 
@@ -195,28 +163,15 @@ public class SingleNonBlocking extends Thread{
 
                     // Writable: La key te el flag d'escriptura activat
                     if (key.isWritable()){
-                       /* System.out.println("Key operation: Write");
-                        if (key.attachment() == null){
-                            System.out.println("Key attachment: this key has no attachments");
-                        }else {
-                            System.out.println("Key attachment: " + key.attachment().toString());
-                        }
-
-                         */
-
                         String msg = lamportRequest.toString();
-                        //System.out.println("[CLIENT] Writing: " + msg);
-                        if (msg.equalsIgnoreCase("quit")) {
-                            return;
-                        }
                         SocketChannel sc = (SocketChannel) key.channel();
                         ByteBuffer bb = ByteBuffer.wrap(msg.getBytes());
+                        System.out.println("Writing: " + msg);
                         sc.write(bb);
                         s_lwa.addRequest(lamportRequest);
                         sc.register(selector, SelectionKey.OP_READ);
                     }
                 }
-                //System.out.println("\n\n-_-_-_-SELECTING NEW KEY SET-_-_-_-");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -241,8 +196,6 @@ public class SingleNonBlocking extends Thread{
 
 
     private void done() throws IOException {
-        //System.out.println("\nGot both responses. Exiting.");
-        //System.exit(0);
         if (s_lwa.checkQueue()){
             s_lwa.useScreen();
             sendRemove();
@@ -253,7 +206,6 @@ public class SingleNonBlocking extends Thread{
     private void sendRemove() throws IOException {
         //Send remove
         String msg = lamportRequest.toString().replace(LAMPORT_REQUEST, REMOVE_REQUEST);
-        //System.out.println("[CLIENT] Sending: " + msg);
         ByteBuffer bb = ByteBuffer.wrap(msg.getBytes());
         socketChannel1.write(bb);
 
@@ -264,7 +216,6 @@ public class SingleNonBlocking extends Thread{
         //Send newly updated LamportRequest
         clock++;
         lamportRequest = new LamportRequest(clock, process, id);
-
         bb = ByteBuffer.wrap(lamportRequest.toString().getBytes());
         socketChannel1.write(bb);
 

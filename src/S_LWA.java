@@ -37,13 +37,22 @@ public class S_LWA extends Thread {
             connectToParent();
             doStreamHWA.writeUTF("ONLINE");
             doStreamHWA.writeUTF(process);
-            boolean connect = diStreamHWA.readBoolean();
-
-            if (connect){
+            System.out.println("Waiting for a message from parent");
+            String msg = diStreamHWA.readUTF();
+            System.out.println(msg);
+            SingleNonBlocking singleNonBlocking = null;
+            //if (msg.equals("CONNECT")){
                 System.out.println("Setting up server with port: " + myPort);
-                SingleNonBlocking singleNonBlocking = new SingleNonBlocking(this, clock, myPort, firstPort, secondPort, id, process);
+                singleNonBlocking = new SingleNonBlocking(this, clock, myPort, firstPort, secondPort, id, process);
+                singleNonBlocking.start();
+            //}
+            /*msg = diStreamHWA.readUTF();
+            if (msg.equals("WORK")){
+                assert singleNonBlocking != null;
                 singleNonBlocking.start();
             }
+
+             */
         } catch (ConnectException ignored) {
         } catch (IOException e) {
             e.printStackTrace();
@@ -51,8 +60,9 @@ public class S_LWA extends Thread {
     }
 
     public synchronized void useScreen() {
+        System.out.println("I want to use screen but I need parent allowance first.");
         parentAllowance();
-        for (int i = 0; i < 10; i++){
+        for (int i = 0; i < 2; i++){
             System.out.println("\tSoc el procés lightweight " + process);
             try {
                 Thread.sleep(1000);
@@ -68,7 +78,8 @@ public class S_LWA extends Thread {
             boolean childsDone = diStreamHWA.readBoolean();
             System.out.println("Reading childsDone = " + childsDone);
             if (childsDone){
-                diStreamHWA.readUTF();
+                String mistery = diStreamHWA.readUTF();
+                System.out.println("Got mistery: " + mistery);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -92,11 +103,6 @@ public class S_LWA extends Thread {
     }
 
     public boolean checkQueue() {
-
-        //for (LamportRequest lr : lamportQueue) {
-        //   System.out.println("[LAMPORT (query)]" + lr.toString());
-        // }
-
         LamportRequest toBeExecuted = null;
         for (int i = 0; i < lamportQueue.size(); i++){
             toBeExecuted = lamportQueue.get(i);
