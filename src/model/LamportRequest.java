@@ -1,3 +1,5 @@
+package model;
+
 public class LamportRequest {
     private int clock;
     private String process;

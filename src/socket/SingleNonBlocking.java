@@ -1,4 +1,7 @@
+package socket;
+
 import com.google.gson.Gson;
+import model.LamportRequest;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -20,7 +23,7 @@ public class SingleNonBlocking extends Thread{
     private boolean firstResponse;
     private boolean secondResponse;
 
-    /**  **/
+    /** Constants per al algoritme de lamport **/
     private final static String LAMPORT_REQUEST = "LamportRequest";
     private final static String RESPONSE_REQUEST = "ResponseRequest";
     private final static String REMOVE_REQUEST = "RemoveRequest";
@@ -85,7 +88,6 @@ public class SingleNonBlocking extends Thread{
                         SocketChannel sc = serverSocketChannel.accept();
                         sc.configureBlocking(false);
                         sc.register(selector, SelectionKey.OP_READ);
-                        //System.out.println("[SERVER] Connection Accepted: " + sc.getRemoteAddress());
                         key.attach(sc.getRemoteAddress());
                     }
 
@@ -105,7 +107,6 @@ public class SingleNonBlocking extends Thread{
                         bb.clear();
                         sc.read(bb);
                         String result = new String(bb.array()).trim();
-                        System.out.println("I got " + result);
 
                         // En base al missatge llegit, ens comportem/contestem d'una forma o una altra
                         if (result.contains(RESPONSE_REQUEST)) {
@@ -131,11 +132,10 @@ public class SingleNonBlocking extends Thread{
                             lamportRequest = gson.fromJson(aux[1], LamportRequest.class);
                             s_lwa.addRequest(lamportRequest);
                             result = this.lamportRequest.toString().replace(LAMPORT_REQUEST, RESPONSE_REQUEST);
-                            System.out.println("Writing: " + result);
                             bb.clear();
                             bb.put (result.getBytes());
                             bb.flip();
-                            sc.write (bb);
+                            sc.write(bb);
 
                         }else if (result.contains(LAMPORT_REQUEST)) {
                             Gson gson = new Gson();
@@ -143,11 +143,10 @@ public class SingleNonBlocking extends Thread{
                             assignResponder(lamportRequest.getProcess(), LAMPORT_REQUEST);
                             s_lwa.addRequest(lamportRequest);
                             result = this.lamportRequest.toString().replace(LAMPORT_REQUEST, RESPONSE_REQUEST);
-                            System.out.println("Writing: " + result);
                             bb.clear();
                             bb.put (result.getBytes());
                             bb.flip();
-                            sc.write (bb);
+                            sc.write(bb);
 
                         }else if (result.contains(REMOVE_REQUEST)){
                             Gson gson = new Gson();
@@ -166,7 +165,6 @@ public class SingleNonBlocking extends Thread{
                         String msg = lamportRequest.toString();
                         SocketChannel sc = (SocketChannel) key.channel();
                         ByteBuffer bb = ByteBuffer.wrap(msg.getBytes());
-                        System.out.println("Writing: " + msg);
                         sc.write(bb);
                         s_lwa.addRequest(lamportRequest);
                         sc.register(selector, SelectionKey.OP_READ);
@@ -213,7 +211,7 @@ public class SingleNonBlocking extends Thread{
         socketChannel2.write(bb);
         s_lwa.removeRequest(lamportRequest);
 
-        //Send newly updated LamportRequest
+        //Send newly updated model.LamportRequest
         clock++;
         lamportRequest = new LamportRequest(clock, process, id);
         bb = ByteBuffer.wrap(lamportRequest.toString().getBytes());

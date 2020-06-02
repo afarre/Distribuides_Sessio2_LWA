@@ -1,3 +1,7 @@
+package socket;
+
+import model.LamportRequest;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -10,15 +14,14 @@ public class S_LWA extends Thread {
     private DataInputStream diStreamHWA;
     private DataOutputStream doStreamHWA;
 
-    private ArrayList<LamportRequest> lamportQueue;
+    private final ArrayList<LamportRequest> lamportQueue;
 
-    private String process;
-    private int parentPort;
-    private int myPort;
-    private int firstPort;
-    private int secondPort;
-    private int id;
-    private int clock;
+    private final String process;
+    private final int parentPort;
+    private final int myPort;
+    private final int firstPort;
+    private final int secondPort;
+    private final int id;
 
     public S_LWA(String process, int parentPort, int myPort, int firstPort, int secondPort, int id){
         this.process = process;
@@ -32,27 +35,16 @@ public class S_LWA extends Thread {
 
     @Override
     public synchronized void run() {
-        clock = 0;
+        int clock = 0;
         try {
             connectToParent();
             doStreamHWA.writeUTF("ONLINE");
             doStreamHWA.writeUTF(process);
-            System.out.println("Waiting for a message from parent");
-            String msg = diStreamHWA.readUTF();
-            System.out.println(msg);
-            SingleNonBlocking singleNonBlocking = null;
-            //if (msg.equals("CONNECT")){
-                System.out.println("Setting up server with port: " + myPort);
-                singleNonBlocking = new SingleNonBlocking(this, clock, myPort, firstPort, secondPort, id, process);
-                singleNonBlocking.start();
-            //}
-            /*msg = diStreamHWA.readUTF();
-            if (msg.equals("WORK")){
-                assert singleNonBlocking != null;
-                singleNonBlocking.start();
-            }
+            diStreamHWA.readUTF();
 
-             */
+            System.out.println("Setting up server with port: " + myPort);
+            new SingleNonBlocking(this, clock, myPort, firstPort, secondPort, id, process).start();
+
         } catch (ConnectException ignored) {
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,9 +52,8 @@ public class S_LWA extends Thread {
     }
 
     public synchronized void useScreen() {
-        System.out.println("I want to use screen but I need parent allowance first.");
         parentAllowance();
-        for (int i = 0; i < 2; i++){
+        for (int i = 0; i < 10; i++){
             System.out.println("\tSoc el procés lightweight " + process);
             try {
                 Thread.sleep(1000);
@@ -70,16 +61,15 @@ public class S_LWA extends Thread {
                 e.printStackTrace();
             }
         }
+        System.out.println("-- Iteració acabada --\n");
     }
 
     private void parentAllowance() {
         try {
             doStreamHWA.writeUTF("RUN STATUS");
             boolean childsDone = diStreamHWA.readBoolean();
-            System.out.println("Reading childsDone = " + childsDone);
             if (childsDone){
-                String mistery = diStreamHWA.readUTF();
-                System.out.println("Got mistery: " + mistery);
+                diStreamHWA.readUTF();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -117,7 +107,6 @@ public class S_LWA extends Thread {
                 break;
             }
         }
-        //System.out.println("Lamport to be executed: " + toBeExecuted.toString());
         return toBeExecuted.getProcess().equals(process);
     }
 
@@ -128,7 +117,5 @@ public class S_LWA extends Thread {
     public void communicateDone(String process) throws IOException {
         doStreamHWA.writeUTF("LWA DONE");
         doStreamHWA.writeUTF(process);
-        System.out.println("Sending done");
-
     }
 }
