@@ -17,7 +17,6 @@ public class X_LWA extends Thread {
     private final static String TOKEN_B = "TOKEN_B";
     private final static String TOKEN_A = "TOKEN_A";
 
-    private Socket outSocket;
 
     /** Variables per al control de la comunicacio **/
     private String firstResponder;
@@ -35,13 +34,15 @@ public class X_LWA extends Thread {
     private final ArrayList<LamportRequest> lamportQueue;
     private LamportRequest lamportRequest;
     private OutgoingSocket outgoingSocket;
+    private int clock;
 
     public X_LWA(String process, int myPort, int id, int xarxaPort){
         this.process = process;
         INCOMING_PORT = myPort;
         OUTGOING_PORT = xarxaPort;
         this.id = id;
-        lamportRequest = new LamportRequest(0, process, id);
+        clock = 0;
+        lamportRequest = new LamportRequest(clock, process, id);
         lamportQueue = new ArrayList<>();
     }
 
@@ -50,7 +51,6 @@ public class X_LWA extends Thread {
         outgoingSocket = new OutgoingSocket(OUTGOING_PORT, this, process, INCOMING_PORT);
         outgoingSocket.start();
         createIncomeConnection();
-        System.out.println("Waiting for everyone to be connected...");
     }
 
     private void createIncomeConnection() {
@@ -127,6 +127,7 @@ public class X_LWA extends Thread {
     }
 
     public synchronized void removeRequest(LamportRequest lamportRequest) {
+        System.out.println("Removing: " + lamportRequest.toString());
         lamportQueue.remove(lamportRequest);
     }
 
@@ -135,10 +136,17 @@ public class X_LWA extends Thread {
     }
 
     public void sendRequest() {
+        outgoingSocket.setAction("SEND");
         outgoingSocket.myNotify();
     }
 
     public void relayCheckQueue() throws IOException {
-        outgoingSocket.checkQueue();
+        outgoingSocket.setAction("CHECK");
+        outgoingSocket.myNotify();
+    }
+
+    public void increaseLamportClock() {
+        clock++;
+        this.lamportRequest = new LamportRequest(clock, process, id);
     }
 }

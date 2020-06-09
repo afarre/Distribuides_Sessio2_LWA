@@ -44,6 +44,7 @@ public class IncomingSocket extends Thread{
             doStream = new DataOutputStream(socket.getOutputStream());
             while (true){
                 String request = diStream.readUTF();
+                System.out.println("Read request: " + request + " in process " + process);
                 readRequest(request);
             }
 
@@ -61,16 +62,6 @@ public class IncomingSocket extends Thread{
             case WORK:
                 System.out.println("Got work in " + process + " in thread " + Thread.currentThread().getName());
                 parent.sendRequest();
-                /*
-                doStream.writeUTF(parent.getLamportRequest().toString());
-                parent.addRequest(parent.getLamportRequest());
-                response = diStream.readUTF();
-                System.out.println("First response = " + response);
-                response = diStream.readUTF();
-                System.out.println("Second response = " + response);
-                done();
-
-                 */
                 break;
 
             case LAMPORT_REQUEST:
@@ -86,19 +77,8 @@ public class IncomingSocket extends Thread{
 
             case RESPONSE_REQUEST:
                 System.out.println("Got this response request: " + diStream.readUTF());
-                /*
-                if (!checkQueueFlag){
-                    checkQueueFlag = true;
-                }else {
-                    checkQueueFlag = false;
-                    if (parent.checkQueue()){
-                        parent.useScreen();
-                        sendRemove();
-                        parent.communicateDone(process);
-                    }
-                }
-                */
                 break;
+
             case REMOVE_REQUEST:
                 String msg = diStream.readUTF();
                 lamportRequest = gson.fromJson(msg.replace(REMOVE_REQUEST, ""), LamportRequest.class);
@@ -106,20 +86,5 @@ public class IncomingSocket extends Thread{
                 parent.relayCheckQueue();
                 break;
         }
-    }
-
-    private void sendRemove() {
-
-    }
-
-    private void done() {
-        /*
-        if (parent.checkQueue()){
-            parent.useScreen();
-            sendRemove();
-            parent.communicateDone(process);
-        }
-
-         */
     }
 }

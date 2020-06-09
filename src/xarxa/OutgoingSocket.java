@@ -22,12 +22,14 @@ public class OutgoingSocket extends Thread{
     private int INCOMING_PORT;
     private String process;
     private X_LWA parent;
+    private String action;
 
     public OutgoingSocket(int port, X_LWA x_lwa, String name, int incomingPort) {
         this.OUTGOING_PORT = port;
         this.INCOMING_PORT = incomingPort;
         parent = x_lwa;
         this.process = name;
+        this.action = "SEND";
     }
 
     @Override
@@ -46,12 +48,18 @@ public class OutgoingSocket extends Thread{
                 synchronized (this){
                     wait();
                 }
-            } catch (InterruptedException e) {
+                switch (action){
+                    case "SEND":
+                        sendRequest();
+                        break;
+                    case "CHECK":
+                        checkQueue();
+                        break;
+                }
+            } catch (InterruptedException | IOException e) {
                 e.printStackTrace();
             }
-            sendRequest();
         }
-
     }
 
     private void sendRequest() {
@@ -59,6 +67,7 @@ public class OutgoingSocket extends Thread{
         try {
             doStream.writeUTF(LAMPORT_REQUEST);
             doStream.writeUTF(parent.getLamportRequest().toString());
+            System.out.println("Sending this request: " + parent.getLamportRequest().toString());
             parent.addRequest(parent.getLamportRequest());
             response = diStream.readUTF();
             System.out.println("First response = " + response);
@@ -77,6 +86,9 @@ public class OutgoingSocket extends Thread{
             diStream.readBoolean();
             parent.useScreen();
             sendRemove();
+            parent.removeRequest(parent.getLamportRequest());
+            parent.increaseLamportClock();
+            sendRequest();
         }
     }
 
@@ -111,4 +123,7 @@ public class OutgoingSocket extends Thread{
         }
     }
 
+    public void setAction(String send) {
+        this.action = send;
+    }
 }
